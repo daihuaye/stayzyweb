@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stayzy web
 
-## Getting Started
+Responsive Stayzy introduction and feature-flight administration, built with Next.js App Router, Tailwind CSS, shadcn-style Radix primitives, Lucide, and Zustand.
 
-First, run the development server:
+## Run locally
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
+```sh
+pnpm install
+cp .env.example .env.local
+# Configure STAYZY_API_BASE_URL and a random STAYZY_SESSION_SECRET (32+ characters).
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `/` for the public site, `/admin/login` to sign in, and `/admin` for flights. Sign in using the backend's `STAYZY_EXPERIMENT_ADMIN_TOKEN`; it is never a public environment variable. `STAYZY_API_BASE_URL` is the API origin without `/v1` and must use HTTPS in production. Set `STAYZY_APP_STORE_URL` to an HTTPS `apps.apple.com` URL to enable download links.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Sessions contain an encrypted admin token in an eight-hour HttpOnly, SameSite=Strict cookie, Secure in production. Rotate the session secret to invalidate sessions. API requests execute server-side with no caching; Server Actions enforce same-origin mutations and validate authorization individually. No credentials or drafts go into local storage. Production hosting must support Next.js server execution; this is not a static export.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Flight lifecycle
 
-## Learn More
+Create a flight at `/admin/experiments/new`: identify its permanent lowercase key, configure status and integer percentage, and review. The API generates an immutable allocation salt. New flights default to disabled and 0%. Saved edits are explicit, drafts survive refresh, and uncertain writes require checking saved state before retrying.
 
-To learn more about Next.js, take a look at the following resources:
+Deploy the backend implementation of `POST /v1/admin/experiments` before using creation. Older APIs produce a clear unavailable message without clearing drafts. The existing public GET schema stays at version 1. No database migration is required. Each new feature must register and check its key in an app release; unknown keys are ignored by existing clients. Stable allocation uses the installation ID, experiment key, and salt. App refresh timing and saved session snapshots mean existing sessions do not instantly change.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Shared primitives live in `components/ui`, compositions in `components/site` and `components/admin`. Styling comes from semantic Tailwind tokens in `app/globals.css`. Reuse typed props/children instead of duplicating mobile and desktop components. `components.json` records the shadcn configuration.
 
-## Deploy on Vercel
+The admin provider owns one Zustand vanilla store per mounted application. Rule entries are normalized by key, unchanged references are preserved, and components subscribe through narrow selectors. The wizard is a separate slice. Server requests never share a global mutable store.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Verification
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```sh
+pnpm test
+pnpm lint
+pnpm build
+```
+
+If a restricted environment blocks Turbopack worker ports, use `pnpm exec next build --webpack`. The webpack production build is verified.
+
+Tests use mocked server actions and isolated stores, never live rollout mutations. Backend experiment tests run in the sibling API repository with its test environment. Browser verification covers 360px, 768px, and 1440px layouts. There is no automatic deployment.
