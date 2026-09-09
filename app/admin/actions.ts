@@ -2,12 +2,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { apiRequest } from "@/lib/api";
-import {
-  openSession,
-  sealSession,
-  sessionCookie,
-  sessionLifetime,
-} from "@/lib/session";
+import { openSession, sessionCookie } from "@/lib/session";
 import {
   keyError,
   rolloutError,
@@ -25,39 +20,9 @@ async function credential() {
 async function checked<T>(result: Result<T>) {
   if (!result.ok && result.code === "unauthorized")
     (await cookies()).delete(sessionCookie);
+  if (!result.ok && result.code === "password_change_required")
+    redirect("/admin/change-password");
   return result;
-}
-export async function loginAction(_: { error: string }, form: FormData) {
-  const token = form.get("token");
-  if (typeof token !== "string" || !token.trim() || token.length > 2048)
-    return { error: "Enter a valid admin token." };
-  let sealed: string;
-  try {
-    sealed = await sealSession(token.trim());
-  } catch {
-    return {
-      error:
-        "Admin sessions are unavailable. Configure STAYZY_SESSION_SECRET with at least 32 characters.",
-    };
-  }
-  const result = await apiRequest<Configuration>(token.trim(), "");
-  if (!result.ok) return { error: result.error };
-  if (!validConfiguration(result.data))
-    return {
-      error: "The API returned an unsupported experiment configuration.",
-    };
-  (await cookies()).set(sessionCookie, sealed, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: sessionLifetime,
-  });
-  redirect("/admin");
-}
-export async function logoutAction() {
-  (await cookies()).delete(sessionCookie);
-  redirect("/admin/login");
 }
 export async function loadRules(): Promise<Result<Configuration>> {
   const token = await credential();

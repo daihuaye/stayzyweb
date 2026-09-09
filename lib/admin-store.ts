@@ -1,3 +1,4 @@
+import type { Administrator } from "./admin-auth";
 import { createStore } from "zustand/vanilla";
 import type { NewRule, Rule, RuleInput } from "./experiments";
 export type Entry = {
@@ -31,6 +32,8 @@ export function dirty(entry: Entry) {
   );
 }
 export type AdminState = {
+  accounts: Record<string, Administrator>;
+  setAccounts: (accounts: Administrator[]) => void;
   entries: Record<string, Entry>;
   wizard: Wizard;
   notice: string;
@@ -47,6 +50,19 @@ export type AdminState = {
 };
 export const createAdminStore = () =>
   createStore<AdminState>((set) => ({
+    accounts: {},
+    setAccounts: (accounts) =>
+      set((state) => ({
+        accounts: Object.fromEntries(
+          accounts.map((account) => [
+            account.id,
+            JSON.stringify(state.accounts[account.id]) ===
+            JSON.stringify(account)
+              ? state.accounts[account.id]
+              : account,
+          ]),
+        ),
+      })),
     entries: {},
     wizard: newWizard(),
     notice: "",

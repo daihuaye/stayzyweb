@@ -21,3 +21,26 @@ it("fails closed when missing configuration or cookie", async () => {
   delete process.env.STAYZY_SESSION_SECRET;
   await expect(sealSession("token")).rejects.toThrow();
 });
+
+it("rejects legacy cookies and honors a shorter backend expiry", async () => {
+  const { EncryptJWT } = await import("jose");
+  const { createHash } = await import("node:crypto");
+  const key = createHash("sha256")
+    .update(process.env.STAYZY_SESSION_SECRET!)
+    .digest();
+  const legacy = await new EncryptJWT({ token: "legacy-shared-token" })
+    .setProtectedHeader({ alg: "dir", enc: "A256GCM" })
+    .setIssuer("stayzyweb")
+    .setAudience("stayzy-admin")
+    .setExpirationTime("8h")
+    .encrypt(key);
+  expect(await openSession(legacy)).toBeNull();
+  const short = await sealSession(
+    "opaque-session",
+    new Date(Date.now() + 60000).toISOString(),
+  );
+  vi.useFakeTimers();
+  vi.setSystemTime(Date.now() + 120000);
+  expect(await openSession(short)).toBeNull();
+  vi.useRealTimers();
+});

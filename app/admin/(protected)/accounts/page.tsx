@@ -1,22 +1,18 @@
 import { redirect } from "next/navigation";
 import { currentAdmin } from "@/lib/current-admin";
-import { AdminProvider } from "@/components/admin/provider";
-import { AdminShell } from "@/components/admin/shell";
+import { Accounts } from "@/components/admin/accounts";
 import { AccessError } from "@/components/admin/access-error";
-export default async function Layout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const metadata = {
+  title: "Administrators",
+  robots: { index: false, follow: false },
+};
+export default async function Page() {
   const result = await currentAdmin();
   if (!result.ok) {
     if (result.code === "unauthorized") redirect("/admin/login");
     return <AccessError message={result.error} />;
   }
   if (result.data.must_change_password) redirect("/admin/change-password");
-  return (
-    <AdminProvider>
-      <AdminShell account={result.data}>{children}</AdminShell>
-    </AdminProvider>
-  );
+  if (result.data.role !== "owner") redirect("/admin");
+  return <Accounts selfId={result.data.id} />;
 }

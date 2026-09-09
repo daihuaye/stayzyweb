@@ -74,3 +74,25 @@ it("accepts prototype-named keys without confusing missing records", () => {
   store.getState().merge({ constructor: rule });
   expect(store.getState().entries["constructor" as string].saved).toEqual(rule);
 });
+
+it("isolates non-sensitive account records and preserves unchanged references", () => {
+  const a = createAdminStore(),
+    b = createAdminStore();
+  const account = {
+    id: "one",
+    email: "one@example.com",
+    role: "owner" as const,
+    active: true,
+    must_change_password: false,
+    created_at: "2026-01-01",
+  };
+  a.getState().setAccounts([account]);
+  const previous = a.getState().accounts.one;
+  a.getState().setAccounts([
+    { ...account },
+    { ...account, id: "two", email: "two@example.com" },
+  ]);
+  expect(a.getState().accounts.one).toBe(previous);
+  expect(b.getState().accounts).toEqual({});
+  expect(JSON.stringify(a.getState().accounts)).not.toContain("password_hash");
+});
