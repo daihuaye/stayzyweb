@@ -10,11 +10,21 @@ export function Brand({ className }: { className?: string }) {
         className,
       )}
     >
-      <span className="brand-mark" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </span>
+      <svg
+        className="brand-mark"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path
+          d="M 16 4 A 12 12 0 1 0 28 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <circle cx="24.5" cy="7.5" r="2.8" fill="currentColor" />
+      </svg>
       <span>
         stayzy<span className="text-primary">.</span>
       </span>
