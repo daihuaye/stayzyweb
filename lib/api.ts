@@ -1,5 +1,11 @@
 import type { Result } from "./experiments";
 const messages: Record<string, string> = {
+  telemetry_filter:
+    "Choose valid telemetry filters and a date range of at most 90 days.",
+  telemetry_cursor:
+    "The report filters changed or the cursor expired. Refresh the report.",
+  telemetry_session_not_found:
+    "No retained session exists for this identity and environment.",
   invalid_credentials: "Email or password was not accepted.",
   admin_unauthorized: "Your session has expired. Please sign in again.",
   password_change_required: "Change your temporary password before continuing.",
@@ -77,7 +83,9 @@ export async function adminRequest<T>(
           : code === "unavailable"
             ? "This operation is unavailable. The backend may need the administrator-account update."
             : response.status === 422
-              ? "Check the email, password requirements, and other fields."
+              ? path.startsWith("/telemetry")
+                ? "Check the telemetry dates, UUIDs, and filters."
+                : "Check the email, password requirements, and other fields."
               : `The API could not complete this request (${response.status}). Please try again.`);
       return {
         ok: false,

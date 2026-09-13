@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Users,
   KeyRound,
+  Activity,
 } from "lucide-react";
 import { Brand } from "@/components/site/brand";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,12 @@ export function AdminShell({
             className={`flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-medium ${pathname === "/admin" || pathname.startsWith("/admin/experiments") ? "bg-[#e3eee8] text-primary" : "text-muted-foreground hover:bg-muted"}`}
           >
             <Radio className="size-4" /> Feature flights
+          </Link>
+          <Link
+            href="/admin/telemetry"
+            className={`mt-2 flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-medium ${pathname.startsWith("/admin/telemetry") ? "bg-[#e3eee8] text-primary" : "text-muted-foreground hover:bg-muted"}`}
+          >
+            <Activity className="size-4" /> Telemetry
           </Link>
           {account.role === "owner" && (
             <Link
