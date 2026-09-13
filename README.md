@@ -87,3 +87,16 @@ If a restricted environment blocks Turbopack worker ports, use
 `pnpm exec next build --webpack`. Tests mock server calls; backend tests use
 isolated databases and mocked email delivery. Production accounts, real emails,
 rollout changes, and deployment are never part of the test workflow.
+
+## App privacy policy
+
+`/privacy` is a public, static App Router page linked from the homepage footer.
+It uses the confirmed support email and describes the iOS/iPadOS app and support.
+It does not import administrator authentication or require backend credentials.
+
+Before using its deployed HTTPS URL in App Store Connect or the iOS app, confirm
+legal operator identification, deployed provider/log practices, analytics purge
+operation, purchase/log retention periods and privacy-request handling. The page
+does not claim an unverified 90-day production purge or a deletion completion SLA.
+The administrator portal and website hosting practices need separate review.
+No domain is assumed in metadata, and creating this route does not deploy it.

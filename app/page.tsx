@@ -279,6 +279,12 @@ export default function Home() {
       </main>
       <footer className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 border-t border-border px-6 py-8 lg:px-12">
         <Brand className="text-xl" />
+        <Link
+          href="/privacy"
+          className="inline-flex min-h-11 items-center rounded-sm text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        >
+          Privacy policy
+        </Link>
         <span className="text-xs text-muted-foreground">
           Made for a more present day.
         </span>
