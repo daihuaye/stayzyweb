@@ -55,42 +55,11 @@ button:not(:disabled),
 ::selection {
   background: #bcece4;
 }
-.brand-mark {
-  display: block;
-  width: 29px;
-  height: 29px;
-  flex-shrink: 0;
-  color: var(--primary);
-}
 .eyebrow {
   font-size: 11px;
   letter-spacing: 0.16em;
   font-weight: 700;
   text-transform: uppercase;
-}
-.hero-art {
-  background: radial-gradient(
-    ellipse at 52% 42%,
-    #c4e5d2 0%,
-    #e2ead8 48%,
-    #edeee3 75%
-  );
-}
-.focus-orbit {
-  border: 1px solid #668f752b;
-  border-radius: 50%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.grain::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23000' opacity='.035' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
 }
 @media (prefers-reduced-motion: reduce) {
   *,

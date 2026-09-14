@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 export function Brand({ className }: { className?: string }) {
   return (
@@ -10,21 +11,13 @@ export function Brand({ className }: { className?: string }) {
         className,
       )}
     >
-      <svg
-        className="brand-mark"
-        viewBox="0 0 32 32"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <path
-          d="M 16 4 A 12 12 0 1 0 28 16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-        <circle cx="24.5" cy="7.5" r="2.8" fill="currentColor" />
-      </svg>
+      <Image
+        src="/marketing/app-icon.png"
+        alt=""
+        width={44}
+        height={44}
+        className="rounded-xl"
+      />
       <span>
         stayzy<span className="text-primary">.</span>
       </span>
