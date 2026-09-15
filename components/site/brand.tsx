@@ -7,20 +7,17 @@ export function Brand({ className }: { className?: string }) {
       href="/"
       aria-label="Stayzy home"
       className={cn(
-        "inline-flex items-center gap-2.5 text-2xl font-bold tracking-tight",
+        "relative inline-flex h-14 w-32 shrink-0 items-center overflow-hidden rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring",
         className,
       )}
     >
       <Image
-        src="/marketing/app-icon.png"
+        src="/marketing/stayzy-logo.png"
         alt=""
-        width={44}
-        height={44}
-        className="rounded-xl"
+        width={128}
+        height={128}
+        className="absolute -top-[34px] left-0 h-32 w-32 max-w-none"
       />
-      <span>
-        stayzy<span className="text-primary">.</span>
-      </span>
     </Link>
   );
 }
