@@ -15,7 +15,8 @@ pnpm dev
 `STAYZY_API_BASE_URL` is the backend origin without `/v1`; use HTTPS in production.
 `STAYZY_SESSION_SECRET` encrypts website cookies and is **not** a login password.
 Configure both on **Vercel**, or in this repository's `.env.local` for local use.
-`STAYZY_APP_STORE_URL` optionally enables the landing page's App Store links.
+The landing page links to https://apps.apple.com/us/app/stayzy/id6808848074 by default.
+`STAYZY_APP_STORE_URL` optionally overrides this with another HTTPS App Store URL.
 
 ## Administrator login and account setup
 

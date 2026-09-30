@@ -12,14 +12,16 @@ import {
 } from "lucide-react";
 import { Brand } from "@/components/site/brand";
 import { Button } from "@/components/ui/button";
+const defaultAppStoreUrl = "https://apps.apple.com/us/app/stayzy/id6808848074";
+
 function appStoreUrl() {
   try {
-    const url = new URL(process.env.STAYZY_APP_STORE_URL || "");
+    const url = new URL(process.env.STAYZY_APP_STORE_URL || defaultAppStoreUrl);
     return url.protocol === "https:" && url.hostname === "apps.apple.com"
       ? url.href
-      : null;
+      : defaultAppStoreUrl;
   } catch {
-    return null;
+    return defaultAppStoreUrl;
   }
 }
 export default function Home() {
@@ -45,8 +47,8 @@ export default function Home() {
             Made for you
           </a>
           <Button asChild variant="outline">
-            <a href={download || "#how-it-works"}>
-              {download ? "Get Stayzy" : "Meet Stayzy"}
+            <a href={download}>
+              Get Stayzy
               <ArrowUpRight />
             </a>
           </Button>
@@ -73,8 +75,8 @@ export default function Home() {
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-5">
               <Button asChild className="min-h-13 px-7">
-                <a href={download || "#how-it-works"}>
-                  {download ? "Download Stayzy" : "Discover Stayzy"}
+                <a href={download}>
+                  Download for iPhone
                   <ArrowUpRight />
                 </a>
               </Button>
@@ -87,23 +89,34 @@ export default function Home() {
               your device.
             </div>
           </div>
-          <div className="relative isolate flex min-h-[560px] items-center justify-center overflow-hidden rounded-[2rem] bg-[#eae6fa] py-10 sm:min-h-[640px]">
-            <div className="absolute -bottom-32 -right-28 size-96 rounded-full bg-[#b9e7df] blur-2xl" />
-            <span className="eyebrow absolute left-7 top-6 text-[#5b527c]">
-              A little company goes a long way
-            </span>
-            <Image
-              src="/marketing/active.png"
-              alt="Stayzy reading session with a purple companion and separate present, away, break, and elapsed time counters"
-              width={1320}
-              height={2868}
-              sizes="(max-width: 640px) 230px, 260px"
-              preload
-              className="relative mt-5 w-[230px] -rotate-3 rounded-[2rem] border-[5px] border-white shadow-[0_24px_60px_#40376530] sm:w-[260px]"
-            />
+          <div className="relative isolate overflow-hidden rounded-[2rem] bg-[#f6e6eb] px-5 pb-7 pt-7 sm:px-7">
+            <div aria-hidden="true" className="absolute -bottom-24 -right-24 size-96 rounded-full bg-[#c5e6de] blur-3xl" />
+            <div className="relative flex items-center justify-between gap-4">
+              <span className="eyebrow text-[#805763]">Your focus. A little company.</span>
+              <span className="shrink-0 rounded-full bg-white/70 px-3 py-2 text-[10px] font-medium text-[#805763]">Made for iPhone</span>
+            </div>
+            <div className="relative mx-auto mt-9 h-[430px] max-w-[430px] sm:h-[520px]">
+              <Image
+                src="/marketing/piano-report.png"
+                alt="Stayzy live report with goal progress, piano playing time, and presence tracking"
+                width={1320}
+                height={2868}
+                sizes="(max-width: 640px) 180px, 220px"
+                className="absolute right-0 top-10 w-[180px] rotate-[8deg] rounded-[1.9rem] border-[5px] border-white shadow-[0_18px_45px_#59374420] sm:w-[220px]"
+              />
+              <Image
+                src="/marketing/piano-focus.png"
+                alt="Stayzy piano practice session with a smiling pink heart companion and live time counters"
+                width={1320}
+                height={2868}
+                sizes="(max-width: 640px) 200px, 240px"
+                preload
+                className="absolute left-1 top-0 w-[200px] -rotate-[6deg] rounded-[2rem] border-[5px] border-white shadow-[0_24px_60px_#59374430] sm:left-3 sm:w-[240px]"
+              />
+            </div>
             <a
               href="#how-it-works"
-              className="absolute bottom-7 right-5 flex min-h-12 items-center gap-3 rounded-full bg-white px-5 text-sm font-medium shadow-lg transition-transform hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+              className="relative mx-auto flex min-h-12 w-fit items-center gap-3 rounded-full bg-white px-5 text-sm font-medium shadow-sm transition-transform hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             >
               Take a look inside <ArrowDown className="size-4" />
             </a>
@@ -158,9 +171,9 @@ export default function Home() {
                 variant="outline"
                 className="mt-8 border-[#9aae9e] bg-transparent text-[#f5f6e9] hover:bg-[#335347]"
               >
-                <a href={download || "#how-it-works"}>
-                  {download ? "Get Stayzy for iPhone" : "Explore how it works"}
-                  {download ? <ArrowUpRight /> : <ArrowDown />}
+                <a href={download}>
+                  Get Stayzy for iPhone
+                  <ArrowUpRight />
                 </a>
               </Button>
             </div>
