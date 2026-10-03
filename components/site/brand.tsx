@@ -16,7 +16,7 @@ export function Brand({ className }: { className?: string }) {
         alt=""
         width={128}
         height={128}
-        className="absolute -top-[34px] left-0 h-32 w-32 max-w-none"
+        className="absolute left-0 top-1/2 h-auto w-full max-w-none -translate-y-[48%]"
       />
     </Link>
   );

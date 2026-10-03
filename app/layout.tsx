@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
+
+const geist = localFont({
+  src: "./fonts/geist-latin.woff2",
+  variable: "--font-geist",
+  weight: "100 900",
+  display: "swap",
+});
 export const metadata: Metadata = {
   title: {
     default: "Stayzy — Find your focus. Stay with it.",
@@ -20,7 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className="min-h-screen">{children}</body>
+      <body className={`${geist.variable} min-h-[100dvh]`}>{children}</body>
     </html>
   );
 }
