@@ -8,14 +8,14 @@ const activities = [
   {
     label: "Reading",
     icon: BookOpen,
-    image: "setup",
-    alt: "Stayzy setup with reading selected, companions, and session length options",
+    image: "reading-focus",
+    alt: "Stayzy reading session with the orange Sunny companion and present, away, break, and elapsed time counters",
   },
   {
     label: "Homework",
     icon: Pencil,
-    image: "heart-companion",
-    alt: "The smiling heart companion in Stayzy’s full-screen focus view",
+    image: "homework-focus",
+    alt: "Stayzy homework session with the purple Pebble companion and present, away, break, and elapsed time counters",
   },
   {
     label: "Piano practice",
