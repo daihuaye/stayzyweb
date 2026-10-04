@@ -333,6 +333,22 @@ button:not(:disabled),
 .activity-picker button:hover {
   transform: translateY(-2px);
 }
+.activity-progress {
+  width: min(180px, 60%);
+  height: 3px;
+  margin: 12px auto 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+}
+.activity-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: left;
+}
 .discovery-strip {
   background: var(--muted);
 }

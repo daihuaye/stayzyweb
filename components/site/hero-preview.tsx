@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BookOpen, Music2, Pencil } from "lucide-react";
 
 const activities = [
@@ -25,23 +25,32 @@ const activities = [
   },
 ];
 
+const autoplayDuration = 4000;
+
 export function HeroPreview() {
   const [active, setActive] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [hasFocus, setHasFocus] = useState(false);
+  const progressFill = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let progressAnimation: Animation | undefined;
 
     function scheduleNext() {
       clearTimeout(timer);
+      progressAnimation?.cancel();
       if (isHovered || hasFocus || document.hidden || reducedMotion.matches) {
         return;
       }
+      progressAnimation = progressFill.current?.animate(
+        [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }],
+        { duration: autoplayDuration, easing: "linear", fill: "forwards" },
+      );
       timer = setTimeout(() => {
         setActive((current) => (current + 1) % activities.length);
-      }, 4000);
+      }, autoplayDuration);
     }
 
     scheduleNext();
@@ -49,6 +58,7 @@ export function HeroPreview() {
     reducedMotion.addEventListener("change", scheduleNext);
     return () => {
       clearTimeout(timer);
+      progressAnimation?.cancel();
       document.removeEventListener("visibilitychange", scheduleNext);
       reducedMotion.removeEventListener("change", scheduleNext);
     };
@@ -100,6 +110,9 @@ export function HeroPreview() {
             {label}
           </button>
         ))}
+      </div>
+      <div className="activity-progress" aria-hidden="true">
+        <span ref={progressFill} className="activity-progress-fill" />
       </div>
     </div>
   );
