@@ -5,6 +5,9 @@ import {
   Activity,
   AlertTriangle,
   ChevronDown,
+  Search,
+  Camera,
+  Clock,
 } from "lucide-react";
 import { Bars, Card, Empty, Funnel, Metric } from "./charts";
 import { ReportNav, ReportSection } from "./report-layout";
@@ -47,7 +50,7 @@ function ReportSummary({
     <section
       id="summary"
       aria-label="Report summary"
-      className="scroll-mt-24 rounded-2xl border border-border bg-card p-5"
+      className="telemetry-summary scroll-mt-24"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold tracking-tight">Report summary</h2>
@@ -104,7 +107,7 @@ function WaitingStates({ data, query }: { data: Overview; query: Query }) {
           <details
             key={group.title}
             open
-            className="group rounded-xl border border-border p-3"
+            className="telemetry-wait-group group"
           >
             <summary className="flex min-h-11 cursor-pointer flex-wrap items-center justify-between gap-2 text-sm font-medium">
               <span className="flex items-center gap-2">
@@ -165,44 +168,7 @@ export function OverviewPanel({
           ["coverage", "Delivery"],
         ]}
       />
-      <ReportSummary data={data}>
-        <p>
-          {rate(s.completed, s.sessions_observed) === "Unavailable" ? (
-            "Completion rate is unavailable for this period."
-          ) : (
-            <>
-              <strong>
-                {format(s.completed)} of {format(s.sessions_observed)} observed
-                sessions completed
-              </strong>{" "}
-              ({rate(s.completed, s.sessions_observed)}).
-            </>
-          )}{" "}
-          {format(s.failed)} failed; {format(s.incomplete)} remain incomplete.
-        </p>
-        <p className="text-muted-foreground">
-          {format(s.active_installations)} active installations recorded{" "}
-          {duration(s.foreground_seconds)} of foreground app use.{" "}
-          {format(s.possible_drop_offs)} unfinished sessions had no activity or
-          delivery for at least 24 hours; manual breaks are excluded.
-        </p>
-        {longestWait && (
-          <p className="text-muted-foreground">
-            Largest recorded wait:{" "}
-            <Link
-              className="font-medium text-primary underline underline-offset-4"
-              href={sessions({
-                wait_state: longestWait.label || undefined,
-                activity: "true",
-              })}
-            >
-              {label(longestWait.label)} ({duration(longestWait.value)})
-            </Link>
-            . This is accumulated time, not an average per session.
-          </p>
-        )}
-      </ReportSummary>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="telemetry-metrics grid gap-0 sm:grid-cols-2 xl:grid-cols-3">
         <Metric
           title="Active installations"
           value={format(s.active_installations)}
@@ -241,7 +207,83 @@ export function OverviewPanel({
           href={sessions({ possible_drop_off: "true" })}
         />
       </div>
-      <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs leading-5 text-muted-foreground">
+      <section
+        className="telemetry-investigations"
+        aria-label="Investigation shortcuts"
+      >
+        <div className="telemetry-investigation-heading">
+          <Search size={18} />
+          <h2>Start an investigation</h2>
+          <span>Go from signal to session</span>
+        </div>
+        <div className="telemetry-investigation-links">
+          <Link href={sessions({ possible_drop_off: "true" })}>
+            <Clock size={18} />
+            <span>
+              <strong>Possible drop-offs</strong>
+              <small>
+                {format(s.possible_drop_offs)} unfinished sessions with no
+                activity for 24h
+              </small>
+            </span>
+            <ArrowUpRight size={16} />
+          </Link>
+          <Link href={sessions({ errors: "true" })}>
+            <AlertTriangle size={18} />
+            <span>
+              <strong>Sessions with errors</strong>
+              <small>Inspect recorded diagnostics and their timelines</small>
+            </span>
+            <ArrowUpRight size={16} />
+          </Link>
+          <Link href={href(query, { tab: "health", cursor: undefined })}>
+            <Camera size={18} />
+            <span>
+              <strong>Detection Health</strong>
+              <small>Explore camera startup, processing, and recovery</small>
+            </span>
+            <ArrowUpRight size={16} />
+          </Link>
+        </div>
+      </section>
+      <ReportSummary data={data}>
+        <p>
+          {rate(s.completed, s.sessions_observed) === "Unavailable" ? (
+            "Completion rate is unavailable for this period."
+          ) : (
+            <>
+              <strong>
+                {format(s.completed)} of {format(s.sessions_observed)} observed
+                sessions completed
+              </strong>{" "}
+              ({rate(s.completed, s.sessions_observed)}).
+            </>
+          )}{" "}
+          {format(s.failed)} failed; {format(s.incomplete)} remain incomplete.
+        </p>
+        <p className="text-muted-foreground">
+          {format(s.active_installations)} active installations recorded{" "}
+          {duration(s.foreground_seconds)} of foreground app use.{" "}
+          {format(s.possible_drop_offs)} unfinished sessions had no activity or
+          delivery for at least 24 hours; manual breaks are excluded.
+        </p>
+        {longestWait && (
+          <p className="text-muted-foreground">
+            Largest recorded wait:{" "}
+            <Link
+              className="font-medium text-primary underline underline-offset-4"
+              href={sessions({
+                wait_state: longestWait.label || undefined,
+                activity: "true",
+              })}
+            >
+              {label(longestWait.label)} ({duration(longestWait.value)})
+            </Link>
+            . This is accumulated time, not an average per session.
+          </p>
+        )}
+      </ReportSummary>
+      <div className="telemetry-caveat px-4 py-3 text-xs leading-5 text-muted-foreground">
         <Activity className="mr-2 inline size-4" />
         {format(s.incomplete)} sessions remain incomplete. Missing outcomes can
         reflect offline delivery, suspension, or opt-out. They do not establish
@@ -503,7 +545,7 @@ export function SessionsPanel({
             </Link>
           </p>
         )}
-        <p className="text-sm tabular-nums">
+        <p className="telemetry-results-count text-sm tabular-nums">
           {format(data.items.length)} sessions on this page ·{" "}
           {format(data.items.filter((s) => s.possible_drop_off).length)}{" "}
           possible drop-offs ·{" "}
@@ -519,7 +561,7 @@ export function SessionsPanel({
             tabIndex={0}
             className="max-h-[70dvh] overflow-auto rounded-xl border border-border focus-visible:outline-2 focus-visible:outline-primary"
           >
-            <table className="w-full min-w-[800px] text-left text-xs">
+            <table className="telemetry-session-table w-full min-w-[800px] text-left text-xs">
               <caption className="sr-only">
                 Sessions matching the current cohort and diagnostic filters
               </caption>
@@ -568,7 +610,7 @@ export function SessionsPanel({
                         {percent(row.totals.progress)} of target
                       </p>
                       {row.possible_drop_off && (
-                        <p className="mt-2 rounded-md bg-amber-50 p-2 text-amber-800">
+                        <p className="mt-2 rounded-md bg-muted p-2 font-medium text-foreground">
                           Possible drop-off
                         </p>
                       )}
@@ -677,7 +719,7 @@ export function HealthPanel({ data, query }: { data: Health; query: Query }) {
           counts do not establish a camera startup success rate.
         </p>
       </ReportSummary>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="telemetry-metrics grid gap-0 sm:grid-cols-2 xl:grid-cols-3">
         <Metric
           title="First frames / camera start attempts"
           value={`${format(s.first_frames)} / ${format(s.attempts)}`}

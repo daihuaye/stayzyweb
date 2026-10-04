@@ -1,7 +1,33 @@
 "use client";
 import { useRouter, usePathname } from "next/navigation";
-import { useTransition } from "react";
-import { RefreshCw } from "lucide-react";
+import { useTransition, useState } from "react";
+import {
+  RefreshCw,
+  CalendarDays,
+  Server,
+  Layers,
+  SlidersHorizontal,
+  Search,
+  ScanLine,
+  CircleCheck,
+  Camera,
+  Users,
+  Bug,
+  Activity,
+  Globe,
+  Code,
+  FlaskConical,
+  CalendarRange,
+  CircleDashed,
+  Square,
+  CircleX,
+  AlertTriangle,
+  ToggleLeft,
+  ToggleRight,
+  Clock,
+} from "lucide-react";
+import { Select } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { href, type Query } from "@/lib/telemetry";
 export const field =
@@ -43,9 +69,10 @@ export function Filters({
 }) {
   const router = useRouter();
   const [pending, transition] = useTransition();
+  const [range, setRange] = useState(query.range || "7");
   return (
     <form
-      className="grid items-end gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 xl:grid-cols-4"
+      className="telemetry-filters grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-4"
       onSubmit={(event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
@@ -64,58 +91,114 @@ export function Filters({
             new Date(`${end}T00:00:00.000Z`).getTime() + 86400000,
           ).toISOString();
         }
-        transition(() => router.push(href(next)));
+        transition(() => router.push(href(next), { scroll: false }));
       }}
     >
-      <label className="space-y-1 text-xs text-muted-foreground">
-        Date range · UTC
-        <select
+      <div className="space-y-1 text-xs text-muted-foreground">
+        <span className="filter-label">
+          <CalendarDays size={14} />
+          Date range · UTC
+        </span>
+        <Select
           name="range"
-          className={field}
-          defaultValue={query.range || "7"}
-        >
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
-          <option value="custom">Custom (up to 90 days)</option>
-        </select>
-      </label>
-      <label className="space-y-1 text-xs text-muted-foreground">
-        Environment
-        <select
+          label="Date range · UTC"
+          value={range}
+          onValueChange={setRange}
+          disabled={pending}
+          options={[
+            {
+              value: "7",
+              label: "Last 7 days",
+              icon: CalendarDays,
+              description: "Recent session activity",
+            },
+            {
+              value: "30",
+              label: "Last 30 days",
+              icon: CalendarDays,
+              description: "A broader view of app usage",
+            },
+            {
+              value: "90",
+              label: "Last 90 days",
+              icon: CalendarDays,
+              description: "Full retained reporting window",
+            },
+            {
+              value: "custom",
+              label: "Custom dates",
+              icon: CalendarRange,
+              description: "Choose up to 90 days, inclusive",
+            },
+          ]}
+        />
+      </div>
+      <div className="space-y-1 text-xs text-muted-foreground">
+        <span className="filter-label">
+          <Server size={14} />
+          Environment
+        </span>
+        <Select
           name="environment"
-          className={field}
-          defaultValue={query.environment}
-        >
-          <option>production</option>
-          <option>debug</option>
-          <option>test</option>
-        </select>
-      </label>
-      <label className="space-y-1 text-xs text-muted-foreground">
-        App version
-        <select
+          label="Environment"
+          defaultValue={query.environment || "production"}
+          disabled={pending}
+          options={[
+            {
+              value: "production",
+              label: "production",
+              icon: Globe,
+              description: "Production app telemetry",
+            },
+            {
+              value: "debug",
+              label: "debug",
+              icon: Code,
+              description: "Debug builds and development",
+            },
+            {
+              value: "test",
+              label: "test",
+              icon: FlaskConical,
+              description: "Test environment telemetry",
+            },
+          ]}
+        />
+      </div>
+      <div className="space-y-1 text-xs text-muted-foreground">
+        <span className="filter-label">
+          <Layers size={14} />
+          App version
+        </span>
+        <Select
           name="app_version"
-          className={field}
+          label="App version"
           defaultValue={query.app_version || ""}
-        >
-          <option value="">All versions</option>
-          {Array.from(
-            new Set([
-              ...versions,
-              ...(query.app_version ? [query.app_version] : []),
-            ]),
-          ).map((v) => (
-            <option key={v}>{v}</option>
-          ))}
-        </select>
-      </label>
+          disabled={pending}
+          options={[
+            { value: "", label: "All versions", icon: Layers },
+            ...Array.from(
+              new Set([
+                ...versions,
+                ...(query.app_version ? [query.app_version] : []),
+              ]),
+            )
+              .filter(Boolean)
+              .map((version) => ({
+                value: version,
+                label: version,
+                icon: Layers,
+              })),
+          ]}
+        />
+      </div>
       <Button disabled={pending} type="submit">
+        <SlidersHorizontal />
         {pending ? "Applying…" : "Apply filters"}
       </Button>
       <details
-        className="sm:col-span-2 xl:col-span-4"
-        open={query.range === "custom"}
+        className="telemetry-custom-dates sm:col-span-2 xl:col-span-4"
+        open={range === "custom"}
       >
         <summary className="cursor-pointer py-2 text-xs text-muted-foreground">
           Custom dates (inclusive)
@@ -123,18 +206,20 @@ export function Filters({
         <div className="flex flex-wrap gap-3">
           <label className="text-xs">
             From
-            <input
+            <Input
               name="start"
               type="date"
+              required={range === "custom"}
               className={field}
               defaultValue={query.start?.slice(0, 10)}
             />
           </label>
           <label className="text-xs">
             Through
-            <input
+            <Input
               name="end"
               type="date"
+              required={range === "custom"}
               className={field}
               defaultValue={
                 query.end && Number.isFinite(new Date(query.end).getTime())
@@ -170,71 +255,112 @@ export function SessionFilters({ query }: { query: Query }) {
       }}
     >
       <label className="text-xs">
-        Session UUID
-        <input
+        <span className="filter-label">
+          <ScanLine size={14} />
+          Session UUID
+        </span>
+        <Input
           name="session_id"
           className={field}
           defaultValue={query.session_id}
           placeholder="Exact session UUID"
         />
       </label>
-      <label className="text-xs">
-        Outcome
-        <select
-          className={field}
+      <div className="text-xs">
+        <span className="filter-label">
+          <CircleCheck size={14} />
+          Outcome
+        </span>
+        <Select
           name="status"
+          label="Outcome"
           defaultValue={query.status || ""}
-        >
-          <option value="">All outcomes</option>
-          {["inProgress", "completed", "endedEarly", "cancelled", "failed"].map(
-            (x) => (
-              <option key={x}>{x}</option>
-            ),
-          )}
-        </select>
-      </label>
+          options={[
+            { value: "", label: "All outcomes", icon: Layers },
+            {
+              value: "inProgress",
+              label: "In progress / incomplete",
+              icon: CircleDashed,
+            },
+            { value: "completed", label: "Completed", icon: CircleCheck },
+            { value: "endedEarly", label: "End for Now", icon: Square },
+            { value: "cancelled", label: "Cancelled", icon: CircleX },
+            { value: "failed", label: "Failed", icon: AlertTriangle },
+          ]}
+        />
+      </div>
       <label className="text-xs">
-        Last recorded state
-        <input
+        <span className="filter-label">
+          <Camera size={14} />
+          Last recorded state
+        </span>
+        <Input
           name="state"
           className={field}
           defaultValue={query.state}
           placeholder="e.g. acquiring"
         />
       </label>
-      <label className="text-xs">
-        Time by buddy
-        <select className={field} name="buddy" defaultValue={query.buddy || ""}>
-          <option value="">All configurations</option>
-          <option value="true">Enabled</option>
-          <option value="false">Disabled</option>
-        </select>
-      </label>
-      <label className="text-xs">
-        Diagnostics
-        <select
-          className={field}
+      <div className="text-xs">
+        <span className="filter-label">
+          <Users size={14} />
+          Time by buddy
+        </span>
+        <Select
+          name="buddy"
+          label="Time by buddy"
+          defaultValue={query.buddy || ""}
+          options={[
+            { value: "", label: "All configurations", icon: Users },
+            { value: "true", label: "Enabled", icon: ToggleRight },
+            { value: "false", label: "Disabled", icon: ToggleLeft },
+          ]}
+        />
+      </div>
+      <div className="text-xs">
+        <span className="filter-label">
+          <Bug size={14} />
+          Diagnostics
+        </span>
+        <Select
           name="errors"
+          label="Diagnostics"
           defaultValue={query.errors || ""}
-        >
-          <option value="">All sessions</option>
-          <option value="true">With errors</option>
-          <option value="false">Without recorded errors</option>
-        </select>
-      </label>
-      <label className="text-xs">
-        Activity
-        <select
-          className={field}
+          options={[
+            { value: "", label: "All sessions", icon: Layers },
+            { value: "true", label: "With errors", icon: Bug },
+            {
+              value: "false",
+              label: "Without recorded errors",
+              icon: CircleCheck,
+            },
+          ]}
+        />
+      </div>
+      <div className="text-xs">
+        <span className="filter-label">
+          <Activity size={14} />
+          Activity
+        </span>
+        <Select
           name="possible_drop_off"
+          label="Activity"
           defaultValue={query.possible_drop_off || ""}
-        >
-          <option value="">All activity</option>
-          <option value="true">Possible drop-off · 24 hours</option>
-          <option value="false">Other sessions</option>
-        </select>
-      </label>
-      <Button type="submit">Find sessions</Button>
+          options={[
+            { value: "", label: "All activity", icon: Activity },
+            {
+              value: "true",
+              label: "Possible drop-off · 24 hours",
+              icon: Clock,
+            },
+            { value: "false", label: "Other sessions", icon: Layers },
+          ]}
+        />
+      </div>
+      <Button type="submit">
+        <Search />
+        Find sessions
+      </Button>
     </form>
   );
 }

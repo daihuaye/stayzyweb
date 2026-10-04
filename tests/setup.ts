@@ -7,3 +7,8 @@ global.ResizeObserver = class {
   unobserve() {}
   disconnect() {}
 };
+
+// jsdom does not implement the scrolling used by Radix keyboard focus.
+if (typeof HTMLElement !== "undefined") {
+  HTMLElement.prototype.scrollIntoView = function () {};
+}

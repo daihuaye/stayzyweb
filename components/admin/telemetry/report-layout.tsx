@@ -1,21 +1,46 @@
+import {
+  Activity,
+  ChartColumn,
+  Flag,
+  Play,
+  Clock,
+  CloudUpload,
+  Gauge,
+  Bug,
+  ScanEye,
+  History,
+} from "lucide-react";
 import type { ReactNode } from "react";
+
+const icons: Record<string, typeof Activity> = {
+  summary: Activity,
+  results: ChartColumn,
+  setup: Play,
+  activity: Clock,
+  coverage: CloudUpload,
+  performance: Gauge,
+  diagnostics: Bug,
+  attribution: ScanEye,
+  recent: History,
+};
 
 export function ReportNav({ items }: { items: [string, string][] }) {
   return (
     // Layer 1 keeps report navigation above charts and below application dialogs.
-    <nav
-      aria-label="Report sections"
-      className="sticky top-0 z-[1] flex gap-1 overflow-x-auto border-b border-border bg-background py-2"
-    >
-      {items.map(([id, title]) => (
-        <a
-          key={id}
-          href={`#${id}`}
-          className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-3 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary active:scale-[0.98]"
-        >
-          {title}
-        </a>
-      ))}
+    <nav aria-label="Report sections" className="telemetry-report-nav">
+      {items.map(([id, title]) => {
+        const Icon = icons[id] || Flag;
+        return (
+          <a
+            key={id}
+            href={`#${id}`}
+            className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-3 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary active:scale-[0.98]"
+          >
+            <Icon size={14} className="mr-2" />
+            {title}
+          </a>
+        );
+      })}
     </nav>
   );
 }
@@ -35,7 +60,7 @@ export function ReportSection({
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="scroll-mt-20 space-y-4 border-t border-border pt-6"
+      className="telemetry-report-section scroll-mt-20 space-y-4"
     >
       <div>
         <h2 id={`${id}-title`} className="text-lg font-semibold tracking-tight">

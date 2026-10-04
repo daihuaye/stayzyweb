@@ -84,25 +84,29 @@ it("preserves custom dates on refresh", () => {
     ),
   ).toBe(query.start);
 });
-it("applies URL filters explicitly", () => {
+it("applies URL filters explicitly", async () => {
   render(<Filters query={query} versions={["1", "2"]} />);
-  fireEvent.change(screen.getByLabelText("App version"), {
-    target: { value: "2" },
+  fireEvent.keyDown(screen.getByRole("combobox", { name: "App version" }), {
+    key: " ",
   });
+  fireEvent.click(await screen.findByRole("option", { name: "2" }));
   expect(router.push).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Apply filters" }));
   const next = new URL(router.push.mock.calls[0][0], "https://test");
   expect(next.searchParams.get("app_version")).toBe("2");
   expect(next.searchParams.get("environment")).toBe("production");
 });
-it("session search keeps the snapshot and includes only chosen filters", () => {
+it("session search keeps the snapshot and includes only chosen filters", async () => {
   render(<SessionFilters query={{ ...query, tab: "sessions" }} />);
   fireEvent.change(screen.getByLabelText("Session UUID"), {
     target: { value: session.session_id },
   });
-  fireEvent.change(screen.getByLabelText("Activity"), {
-    target: { value: "true" },
+  fireEvent.keyDown(screen.getByRole("combobox", { name: "Activity" }), {
+    key: " ",
   });
+  fireEvent.click(
+    await screen.findByRole("option", { name: "Possible drop-off · 24 hours" }),
+  );
   fireEvent.click(screen.getByRole("button", { name: "Find sessions" }));
   const next = new URL(router.push.mock.calls[0][0], "https://test");
   expect(next.searchParams.get("session_id")).toBe(session.session_id);

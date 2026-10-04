@@ -9,6 +9,7 @@ import {
   KeyRound,
   Activity,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/site/theme-toggle";
 import { Brand } from "@/components/site/brand";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/app/admin/auth-actions";
@@ -23,9 +24,9 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-4 sm:px-10">
+    <div className="admin-workspace">
+      <header className="admin-header border-b border-border bg-card">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-5 py-4 sm:px-10">
           <div className="flex items-center gap-4">
             <Brand className="text-xl" />
             <span className="hidden border-l border-border pl-4 text-xs text-muted-foreground sm:block">
@@ -33,6 +34,10 @@ export function AdminShell({
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle
+              target=".admin-workspace"
+              className="admin-theme-toggle"
+            />
             <div className="hidden max-w-48 text-right sm:block">
               <p className="truncate text-xs">{account.email}</p>
               <p className="text-[10px] capitalize text-muted-foreground">
@@ -53,34 +58,34 @@ export function AdminShell({
           </div>
         </div>
       </header>
-      <div className="mx-auto grid max-w-7xl lg:grid-cols-[210px_1fr]">
-        <aside className="border-b border-border px-5 py-4 lg:min-h-[calc(100vh-81px)] lg:border-b-0 lg:border-r lg:px-7 lg:py-9">
-          <p className="eyebrow mb-5 hidden text-muted-foreground lg:block">
+      <div className="admin-layout">
+        <aside className="admin-sidebar">
+          <p className="mb-5 hidden px-4 text-xs font-medium text-muted-foreground lg:block">
             Workspace
           </p>
           <Link
             href="/admin"
-            className={`flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-medium ${pathname === "/admin" || pathname.startsWith("/admin/experiments") ? "bg-[#e3eee8] text-primary" : "text-muted-foreground hover:bg-muted"}`}
+            className={`flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-medium ${pathname === "/admin" || pathname.startsWith("/admin/experiments") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
           >
             <Radio className="size-4" /> Feature flights
           </Link>
           <Link
             href="/admin/telemetry"
-            className={`mt-2 flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-medium ${pathname.startsWith("/admin/telemetry") ? "bg-[#e3eee8] text-primary" : "text-muted-foreground hover:bg-muted"}`}
+            className={`mt-2 flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-medium ${pathname.startsWith("/admin/telemetry") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
           >
             <Activity className="size-4" /> Telemetry
           </Link>
           {account.role === "owner" && (
             <Link
               href="/admin/accounts"
-              className={`mt-2 flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-medium ${pathname === "/admin/accounts" ? "bg-[#e3eee8] text-primary" : "text-muted-foreground hover:bg-muted"}`}
+              className={`mt-2 flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-medium ${pathname === "/admin/accounts" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
             >
               <Users className="size-4" /> Administrators
             </Link>
           )}
           <Link
             href="/admin/change-password"
-            className="mt-2 flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm text-muted-foreground hover:bg-muted"
+            className={`mt-2 flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm ${pathname === "/admin/change-password" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
           >
             <KeyRound className="size-4" /> Password
           </Link>
@@ -95,7 +100,7 @@ export function AdminShell({
             </p>
           </div>
         </aside>
-        <main className="min-w-0 px-5 py-8 sm:px-10 sm:py-10">{children}</main>
+        <main className="admin-main">{children}</main>
       </div>
     </div>
   );
