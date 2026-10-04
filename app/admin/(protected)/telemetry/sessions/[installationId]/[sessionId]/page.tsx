@@ -1,10 +1,11 @@
+import { LocalTime } from "@/components/admin/telemetry/local-time";
 import Link from "next/link";
 import { Suspense } from "react";
 import { loadDetail, loadEvents } from "@/app/admin/telemetry-actions";
 import { DetailPanel, EventLog } from "@/components/admin/telemetry/detail";
 import { ReportingError } from "@/components/admin/telemetry/dashboard";
 import { Refresh } from "@/components/admin/telemetry/controls";
-import { date, href, type Query } from "@/lib/telemetry";
+import { href, type Query } from "@/lib/telemetry";
 type Props = {
   params: Promise<{ installationId: string; sessionId: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -42,9 +43,14 @@ async function Content({ params, searchParams }: Props) {
             From start to outcome
           </h1>
           <p className="mt-2 text-xs text-muted-foreground">
-            {detail.ok
-              ? `Updated at ${date(detail.data.as_of)} · full retained history`
-              : "Session telemetry"}
+            {detail.ok ? (
+              <>
+                Updated at <LocalTime value={detail.data.as_of} /> · full
+                retained history
+              </>
+            ) : (
+              "Session telemetry"
+            )}
           </p>
         </div>
         <Refresh query={query} />

@@ -1,10 +1,10 @@
+import { LocalTime } from "./local-time";
 import Link from "next/link";
 import { Card, Empty, Metric } from "./charts";
 import { Timeline } from "./timeline";
 import {
-  date,
   format,
-  hours,
+  duration,
   href,
   label,
   percent,
@@ -42,7 +42,7 @@ export function DetailPanel({ data }: { data: Detail }) {
         <Metric
           title="Recorded progress"
           value={percent(s.totals.progress)}
-          note={`${hours(s.totals.present_seconds)} confirmed present`}
+          note={`${duration(s.totals.present_seconds)} confirmed present`}
         />
         <Metric
           title="Camera / recognition errors"
@@ -52,7 +52,11 @@ export function DetailPanel({ data }: { data: Detail }) {
         <Metric
           title="Activity"
           value={s.possible_drop_off ? "Possible drop-off" : "Observed"}
-          note={`Last activity ${date(s.last_activity)}`}
+          note={
+            <>
+              Last activity <LocalTime value={s.last_activity} />
+            </>
+          }
         />
       </div>
       <Card
@@ -64,7 +68,12 @@ export function DetailPanel({ data }: { data: Detail }) {
       <div className="grid gap-5 xl:grid-cols-2">
         <Card
           title="Original configuration"
-          note={`First observed ${date(s.created_at)} · app ${s.app_version}`}
+          note={
+            <>
+              First observed <LocalTime value={s.created_at} /> · app{" "}
+              {s.app_version}
+            </>
+          }
         >
           {s.configuration_available && s.configuration ? (
             <>
@@ -88,7 +97,12 @@ export function DetailPanel({ data }: { data: Detail }) {
       </div>
       <Card
         title="Timeline delivery"
-        note={`Last received ${date(s.last_received)}. Missing parts and absent snapshots are data gaps, not evidence of a crash.`}
+        note={
+          <>
+            Last received <LocalTime value={s.last_received} />. Missing parts
+            and absent snapshots are data gaps, not evidence of a crash.
+          </>
+        }
       >
         {!data.snapshots.length ? (
           <Empty>No outcome-referenced snapshot is available yet.</Empty>
@@ -120,8 +134,8 @@ export function DetailPanel({ data }: { data: Detail }) {
           data.configuration_changes.map((e) => (
             <details key={e.event_id} className="border-b border-border py-2">
               <summary className="min-h-11 cursor-pointer py-3 text-sm">
-                {date(e.occurred_at)} · run {e.run_index + 1} · sequence{" "}
-                {e.sequence}
+                <LocalTime value={e.occurred_at} /> · run {e.run_index + 1} ·
+                sequence {e.sequence}
               </summary>
               <PropertiesTable value={e.properties} />
             </details>
@@ -162,8 +176,8 @@ export function DetailPanel({ data }: { data: Detail }) {
                 {String(e.properties.reason || e.properties.status || "")}
               </p>
               <p className="mt-1 text-muted-foreground">
-                {date(e.occurred_at)} · run {e.run_index + 1} · sequence{" "}
-                {e.sequence}
+                <LocalTime value={e.occurred_at} /> · run {e.run_index + 1} ·
+                sequence {e.sequence}
               </p>
             </li>
           ))}
@@ -198,12 +212,17 @@ export function EventLog({
               </span>
               <span className="font-medium">{e.name}</span>
               <span className="ml-3 text-muted-foreground">
-                {date(e.occurred_at)}
+                <LocalTime value={e.occurred_at} />
               </span>
             </summary>
             <p className="mb-3 text-xs text-muted-foreground">
-              Received {e.received_at ? date(e.received_at) : "Unavailable"} ·
-              run {e.run_index + 1}
+              Received{" "}
+              {e.received_at ? (
+                <LocalTime value={e.received_at} />
+              ) : (
+                "Unavailable"
+              )}{" "}
+              · run {e.run_index + 1}
             </p>
             <PropertiesTable value={e.properties} />
           </details>

@@ -124,13 +124,17 @@ export function format(value: unknown, digits = 0) {
     ? "Unavailable"
     : n.toLocaleString("en-US", { maximumFractionDigits: digits });
 }
-export function hours(value: unknown) {
+export function duration(value: unknown) {
   const n = number(value);
-  return n === null
-    ? "Unavailable"
-    : n > 0 && n < 36
-      ? `${format(n, 1)} s`
-      : `${format(n / 3600, 2)} h`;
+  if (n === null) return "Unavailable";
+  if (Math.abs(n) < 60) return `${format(n, 1)} seconds`;
+  if (Math.abs(n) < 3600) return `${format(n / 60, 1)} minutes`;
+  return `${format(n / 3600, 2)} hours`;
+}
+export function rate(numerator: unknown, denominator: unknown) {
+  const n = number(numerator),
+    d = number(denominator);
+  return n === null || d === null || d <= 0 ? "Unavailable" : percent(n / d);
 }
 export function percent(value: unknown) {
   const n = number(value);
@@ -152,14 +156,23 @@ export function label(value: string | null) {
     )[value || ""] || (value || "Unavailable").replaceAll("_", " ")
   );
 }
-export function date(value: string | number) {
+export function date(value: string | number, timeZone = "UTC") {
   const d = new Date(typeof value === "number" ? value * 1000 : value);
-  return Number.isNaN(d.getTime())
-    ? "Unavailable"
-    : d
-        .toISOString()
-        .replace("T", " ")
-        .replace(/\.\d+Z$/, " UTC");
+  if (Number.isNaN(d.getTime())) return "Unavailable";
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+    timeZoneName: "short",
+  }).formatToParts(d);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")} ${part("timeZoneName")}`;
 }
 export function href(
   query: Query,

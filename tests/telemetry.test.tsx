@@ -1,3 +1,4 @@
+import { overview, health } from "./fixtures/telemetry";
 import { beforeEach, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import {
@@ -7,6 +8,8 @@ import {
 } from "@/components/admin/telemetry/controls";
 import {
   ReportingError,
+  OverviewPanel,
+  HealthPanel,
   SessionsPanel,
 } from "@/components/admin/telemetry/dashboard";
 import { Bars, Funnel } from "@/components/admin/telemetry/charts";
@@ -14,6 +17,9 @@ import { Timeline } from "@/components/admin/telemetry/timeline";
 import { AdminShell } from "@/components/admin/shell";
 import {
   apiQuery,
+  date,
+  duration,
+  rate,
   reportQuery,
   type Detail,
   type Session,
@@ -238,4 +244,100 @@ it("hydrates SVG title labels without text-node mismatches", async () => {
   expect(error).not.toHaveBeenCalled();
   await act(async () => root.unmount());
   container.remove();
+});
+
+it("formats UTC instants and epoch seconds in Pacific time with daylight saving", () => {
+  expect(date("2026-01-15T02:03:04Z", "America/Los_Angeles")).toBe(
+    "2026-01-14 18:03:04 PST",
+  );
+  expect(date("2026-07-15T02:03:04Z", "America/Los_Angeles")).toBe(
+    "2026-07-14 19:03:04 PDT",
+  );
+  expect(
+    date(Date.parse("2026-01-15T02:03:04Z") / 1000, "America/Los_Angeles"),
+  ).toBe("2026-01-14 18:03:04 PST");
+  expect(date("invalid", "America/Los_Angeles")).toBe("Unavailable");
+});
+
+it("hydrates timestamps into the browser timezone without mismatches", async () => {
+  const { LocalTime } = await import("@/components/admin/telemetry/local-time");
+  const { renderToString } = await import("react-dom/server");
+  const { hydrateRoot } = await import("react-dom/client");
+  const { act } = await import("react");
+  const options = Intl.DateTimeFormat().resolvedOptions();
+  const zone = vi
+    .spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions")
+    .mockReturnValue({
+      ...options,
+      timeZone: "America/Los_Angeles",
+    });
+  const element = <LocalTime value="2026-01-15T02:03:04Z" />;
+  const container = document.createElement("div");
+  container.innerHTML = renderToString(element);
+  expect(container).toHaveTextContent("2026-01-15 02:03:04 UTC");
+  document.body.appendChild(container);
+  const error = vi.fn();
+  let root: ReturnType<typeof hydrateRoot> | undefined;
+  try {
+    await act(async () => {
+      root = hydrateRoot(container, element, { onRecoverableError: error });
+    });
+    expect(container).toHaveTextContent("2026-01-14 18:03:04 PST");
+    expect(error).not.toHaveBeenCalled();
+  } finally {
+    await act(async () => root?.unmount());
+    container.remove();
+    zone.mockRestore();
+  }
+});
+
+it("uses readable duration units and preserves missing rate measurements", () => {
+  expect(duration(0)).toBe("0 seconds");
+  expect(duration(45)).toBe("45 seconds");
+  expect(duration(90)).toBe("1.5 minutes");
+  expect(duration(7200)).toBe("2 hours");
+  expect(duration(null)).toBe("Unavailable");
+  expect(rate(0, 10)).toBe("0%");
+  expect(rate(null, 10)).toBe("Unavailable");
+  expect(rate(1, 0)).toBe("Unavailable");
+});
+it("summarizes the actual session denominator and makes chart and delivery units explicit", () => {
+  render(<OverviewPanel data={overview} query={query} />);
+  const summary = screen.getByRole("region", { name: "Report summary" });
+  expect(summary).toHaveTextContent(
+    "30 of 50 observed sessions completed (60%)",
+  );
+  expect(summary).toHaveTextContent("15 hours of foreground app use");
+  expect(
+    screen.getByRole("link", { name: /Completion rate/ }),
+  ).toHaveTextContent("60%");
+  expect(screen.getByText("Unit: sessions")).toBeInTheDocument();
+  expect(screen.getByText("Unit: % of target")).toBeInTheDocument();
+  expect(
+    screen.getByText("Average delivery delay").nextElementSibling,
+  ).toHaveTextContent("1.5 minutes");
+});
+it("does not present a missing completion count as a zero percent rate", () => {
+  render(
+    <OverviewPanel
+      data={{ ...overview, summary: { ...overview.summary, completed: null } }}
+      query={query}
+    />,
+  );
+  expect(
+    screen.getByRole("link", { name: /Completion rate/ }),
+  ).toHaveTextContent("Unavailable");
+  expect(
+    screen.getByRole("region", { name: "Report summary" }),
+  ).toHaveTextContent("Completion rate is unavailable");
+});
+it("explains health measurements with sample counts and distinct latency units", () => {
+  render(<HealthPanel data={health} query={query} />);
+  const summary = screen.getByRole("region", { name: "Report summary" });
+  expect(summary).toHaveTextContent(
+    "35 first frames recorded across 40 camera startup attempts",
+  );
+  expect(summary).toHaveTextContent("18.4 milliseconds across 9,000 samples");
+  expect(screen.getByText("Unit: errors")).toBeInTheDocument();
+  expect(screen.getAllByText("Unit: milliseconds")).toHaveLength(2);
 });

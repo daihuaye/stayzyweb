@@ -2,13 +2,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  date,
+  date as formatDate,
   format,
   label,
   percent,
   type Detail,
   type Interval,
 } from "@/lib/telemetry";
+import { useLocalTimeZone } from "./local-time";
 import { Empty } from "./charts";
 const colors = [
   "#087e83",
@@ -37,6 +38,8 @@ function stateColor(kind: string) {
   return "#65716d";
 }
 export function Timeline({ data }: { data: Detail }) {
+  const timeZone = useLocalTimeZone();
+  const date = (value: string | number) => formatDate(value, timeZone);
   const [page, setPage] = useState(0);
   const snapshotIntervals = data.selected_snapshot?.intervals || [];
   // State snapshots and transition-derived state intervals are alternative measurements.
@@ -78,7 +81,7 @@ export function Timeline({ data }: { data: Detail }) {
     <div className="space-y-4">
       <p className="text-xs leading-5 text-muted-foreground">
         Blank space is unobserved time. Overlapping lanes measure different
-        things and must not be added. Times are UTC.
+        things and must not be added. Times are in your local timezone.
       </p>
       <div
         className="flex flex-wrap gap-4 text-xs text-muted-foreground"
@@ -182,13 +185,16 @@ export function Timeline({ data }: { data: Detail }) {
           <table className="w-full min-w-[650px] text-left text-xs tabular-nums">
             <thead>
               <tr className="border-b border-border">
-                {["Lane", "Kind", "Started · UTC", "Recorded duration"].map(
-                  (h) => (
-                    <th className="py-3" key={h}>
-                      {h}
-                    </th>
-                  ),
-                )}
+                {[
+                  "Lane",
+                  "Kind",
+                  "Started · local time",
+                  "Recorded duration",
+                ].map((h) => (
+                  <th className="py-3" key={h}>
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -266,7 +272,7 @@ export function Timeline({ data }: { data: Detail }) {
           <table className="w-full text-left text-xs">
             <thead>
               <tr>
-                <th>Time · UTC</th>
+                <th>Time · local</th>
                 <th>Progress</th>
                 <th>Confirmed present</th>
               </tr>

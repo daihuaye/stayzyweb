@@ -1,3 +1,4 @@
+import { LocalTime } from "@/components/admin/telemetry/local-time";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Activity, ArrowUpRight } from "lucide-react";
@@ -13,7 +14,7 @@ import {
   SessionsPanel,
   ReportingError,
 } from "@/components/admin/telemetry/dashboard";
-import { date, href, reportQuery, type Query } from "@/lib/telemetry";
+import { href, reportQuery, type Query } from "@/lib/telemetry";
 async function Content({
   searchParams,
 }: {
@@ -34,13 +35,10 @@ async function Content({
     tab === "sessions" ? loadSessions(query) : null,
   ]);
   return (
-    <div className="space-y-6">
+    <div className="telemetry-page space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="eyebrow text-primary">Usage & diagnostics</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            Telemetry
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Telemetry</h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
             Follow the path from starting a session to finding focus. Understand
             progress, interruptions, and camera health.
@@ -75,9 +73,13 @@ async function Content({
           ))}
         </nav>
         <p className="text-[11px] text-muted-foreground">
-          {overview.ok
-            ? `Updated at ${date(overview.data.as_of)}`
-            : "No report loaded"}
+          {overview.ok ? (
+            <>
+              Updated at <LocalTime value={overview.data.as_of} />
+            </>
+          ) : (
+            "No report loaded"
+          )}
         </p>
       </div>
       {tab === "overview" ? (
@@ -111,8 +113,8 @@ async function Content({
       )}
       <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
         <ArrowUpRight className="mt-1 size-3 shrink-0" />
-        Anonymous operational telemetry · UTC · manually refreshed · 90-day
-        retention. Camera health does not establish recognition accuracy.
+        Anonymous operational telemetry · local time · manually refreshed ·
+        90-day retention. Camera health does not establish recognition accuracy.
       </p>
     </div>
   );
@@ -123,9 +125,19 @@ export default function TelemetryPage(props: {
   return (
     <Suspense
       fallback={
-        <p role="status" className="py-12 text-muted-foreground">
-          Loading telemetry…
-        </p>
+        <div role="status" className="space-y-6" aria-label="Loading telemetry">
+          <p className="text-sm text-muted-foreground">Loading telemetry…</p>
+          <div aria-hidden="true" className="h-20 rounded-2xl bg-muted" />
+          <div aria-hidden="true" className="h-36 rounded-2xl bg-muted" />
+          <div
+            aria-hidden="true"
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+          >
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="h-28 rounded-xl bg-muted" />
+            ))}
+          </div>
+        </div>
       }
     >
       <Content {...props} />
