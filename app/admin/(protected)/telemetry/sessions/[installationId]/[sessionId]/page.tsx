@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { loadDetail, loadEvents } from "@/app/admin/telemetry-actions";
 import { DetailPanel, EventLog } from "@/components/admin/telemetry/detail";
 import { ReportingError } from "@/components/admin/telemetry/dashboard";
+import { ReportNav } from "@/components/admin/telemetry/report-layout";
 import { Refresh } from "@/components/admin/telemetry/controls";
 import { href, type Query } from "@/lib/telemetry";
 type Props = {
@@ -38,9 +39,8 @@ async function Content({ params, searchParams }: Props) {
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="eyebrow text-primary">Session inspection</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            From start to outcome
+            Session detail
           </h1>
           <p className="mt-2 text-xs text-muted-foreground">
             {detail.ok ? (
@@ -55,6 +55,19 @@ async function Content({ params, searchParams }: Props) {
         </div>
         <Refresh query={query} />
       </div>
+      {detail.ok && (
+        <ReportNav
+          items={[
+            ["session-summary", "Summary"],
+            ["session-time", "Time breakdown"],
+            ["session-timeline", "Timeline"],
+            ["session-diagnostics", "Diagnostics"],
+            ["session-configuration", "Configuration"],
+            ["session-delivery", "Data coverage"],
+            ["session-events", "Event log"],
+          ]}
+        />
+      )}
       {detail.ok ? (
         <DetailPanel data={detail.data} />
       ) : (
@@ -70,7 +83,21 @@ async function Content({ params, searchParams }: Props) {
 }
 export default function SessionPage(props: Props) {
   return (
-    <Suspense fallback={<p role="status">Reconstructing session…</p>}>
+    <Suspense
+      fallback={
+        <div
+          role="status"
+          aria-label="Loading session detail"
+          className="space-y-5"
+        >
+          <p className="text-sm text-muted-foreground">
+            Reconstructing session…
+          </p>
+          <div aria-hidden="true" className="h-56 rounded-2xl bg-muted" />
+          <div aria-hidden="true" className="h-64 rounded-2xl bg-muted" />
+        </div>
+      }
+    >
       <Content {...props} />
     </Suspense>
   );

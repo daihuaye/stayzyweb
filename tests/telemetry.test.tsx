@@ -200,7 +200,10 @@ it("keeps snapshot state intervals out of the presence lane", () => {
   render(<Timeline data={data} />);
   expect(screen.getByText("Inspect interval values (1)")).toBeInTheDocument();
   expect(screen.queryByText("Presence / breaks")).not.toBeInTheDocument();
-  expect(screen.getAllByRole("img")).toHaveLength(2);
+  expect(
+    screen.getByRole("group", { name: /Session timeline with state/ }),
+  ).toBeInTheDocument();
+  expect(screen.getAllByRole("img")).toHaveLength(1);
 });
 it("shows Telemetry navigation to ordinary administrators", () => {
   render(
