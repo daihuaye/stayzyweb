@@ -123,7 +123,7 @@ export function DetailPanel({ data }: { data: Detail }) {
       <ReportSection
         id="session-timeline"
         title="Session timeline"
-        note="See when state changes, presence, and diagnostic events occurred. Expand the interval table for exact measurements."
+        note="Compare minutes by state and measured focus progress. Expand the event timeline or interval table for exact measurements."
       >
         <Card title="Activity & progress">
           <Timeline key={`${s.session_id}/${data.as_of}`} data={data} />

@@ -123,3 +123,59 @@ it("does not apply an earlier failure reason to a resumed session", () => {
     screen.getByRole("region", { name: "Session at a glance" }),
   ).not.toHaveTextContent("camera error");
 });
+
+it("totals repeated state visits in minutes without counting snapshot states", () => {
+  render(
+    <Timeline
+      data={{
+        ...data,
+        state_intervals: [
+          { id: "first", kind: "focused", started_at: 100, duration: 60 },
+          { id: "second", kind: "focused", started_at: 160, duration: 120 },
+          { id: "break", kind: "manual_break", started_at: 280, duration: 30 },
+        ],
+        selected_snapshot: {
+          ...data.selected_snapshot!,
+          intervals: [
+            {
+              id: "duplicate",
+              kind: "focused",
+              lane: "state",
+              started_at: 100,
+              duration: 999,
+            },
+          ],
+        },
+      }}
+    />,
+  );
+  const activity = screen.getByRole("region", { name: "Activity by state" });
+  expect(activity.querySelectorAll("rect")).toHaveLength(2);
+  expect(activity).toHaveTextContent("Focused: 3 minutes");
+  expect(activity).toHaveTextContent("0.5 minutes");
+  expect(activity).toHaveTextContent("Minutes");
+  expect(activity).toHaveTextContent("State");
+});
+
+it("labels the chronologically last measured focus percentage on the Y axis", () => {
+  render(
+    <Timeline
+      data={{
+        ...data,
+        checkpoints: [
+          { at: 300, progress: null, present_seconds: 60, sequence: 3 },
+          { at: 200, progress: 0.734, present_seconds: 44, sequence: 2 },
+          { at: 100, progress: 0.2, present_seconds: 12, sequence: 1 },
+        ],
+      }}
+    />,
+  );
+  const progress = screen.getByRole("region", {
+    name: "Session progress diagram",
+  });
+  const finalLabel = within(progress).getByText("73.4% final");
+  expect(finalLabel).toHaveAttribute("x", "150");
+  expect(Number(finalLabel.getAttribute("y"))).toBeCloseTo(
+    110 - 0.734 * 95 + 4,
+  );
+});

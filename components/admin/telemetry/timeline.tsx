@@ -84,241 +84,362 @@ export function Timeline({ data }: { data: Detail }) {
   const checkpoints = data.checkpoints.filter(
     (c) => number(c.at) !== null && number(c.progress) !== null,
   );
+  const stateTotals = Array.from(
+    usableIntervals(data.state_intervals).reduce((totals, interval) => {
+      totals.set(
+        interval.kind,
+        (totals.get(interval.kind) || 0) + interval.duration / 60,
+      );
+      return totals;
+    }, new Map<string, number>()),
+  );
+  const barWidth = Math.max(940, 100 + stateTotals.length * 130);
+  const barSlot = (barWidth - 100) / Math.max(1, stateTotals.length);
+  const maxMinutes = Math.max(1, ...stateTotals.map(([, minutes]) => minutes));
+  const barCeiling = Math.ceil(maxMinutes / 4) * 4;
+  const finalCheckpoint = [...checkpoints]
+    .sort((a, b) => a.at - b.at || a.sequence - b.sequence)
+    .at(-1);
+  const finalY = finalCheckpoint
+    ? 110 - Math.max(0, Math.min(1, finalCheckpoint.progress!)) * 95
+    : null;
   return (
     <div className="space-y-4">
-      <p className="text-xs leading-5 text-muted-foreground">
-        Blank space is unobserved time. Overlapping lanes measure different
-        things and must not be added. Times are in your local timezone.
-      </p>
-      {buddyCount > 0 && (
-        <label className="flex min-h-11 items-center gap-3 text-sm">
-          <input
-            type="checkbox"
-            checked={showBuddies}
-            onChange={(e) => setShowBuddies(e.target.checked)}
-            className="size-4 accent-primary"
-          />
-          Show buddy lanes ({buddyCount})
-        </label>
-      )}
       <p className="text-xs text-muted-foreground">
-        Recorded timeline span: {duration(span)}. Select an interval or marker
-        to inspect it.
+        Recorded minutes by state. Repeated visits to a state are added
+        together.
       </p>
-      <div
-        className="flex flex-wrap gap-4 text-xs text-muted-foreground"
-        aria-label="State lane legend"
-      >
-        {[
-          ["Focused", "#087e83"],
-          ["Preparation", "#8b642f"],
-          ["Manual break", "#986785"],
-          ["Technical", "#b32d37"],
-          ["Other / away", "#65716d"],
-        ].map(([name, color]) => (
-          <span key={name} className="inline-flex items-center gap-2">
-            <span
-              aria-hidden="true"
-              className="size-2 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            {name}
-          </span>
-        ))}
-      </div>
-      <div
-        role="region"
-        aria-label="Session timeline diagram"
-        tabIndex={0}
-        className="max-h-[32rem] overflow-auto rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
-      >
-        <svg
-          role="group"
-          aria-label="Session timeline with state, presence, buddy and diagnostic lanes. Complete interval values are in the table below."
-          viewBox={`0 0 940 ${height}`}
-          className="min-w-[760px] w-full"
+      {!stateTotals.length ? (
+        <Empty>No measured state durations available.</Empty>
+      ) : (
+        <div
+          role="region"
+          aria-label="Activity by state"
+          tabIndex={0}
+          className="overflow-auto focus-visible:outline-2 focus-visible:outline-primary"
         >
-          <title>{`Session timeline from ${date(start)} to ${date(end)}`}</title>
-          {lanes.map((lane, index) => (
-            <g key={lane}>
-              <text
-                x="0"
-                y={index * 44 + 25}
-                fill="var(--muted-foreground)"
-                fontSize="11"
-              >
-                {lane.slice(0, 27)}
-              </text>
-              <line
-                x1="180"
-                x2="900"
-                y1={index * 44 + 20}
-                y2={index * 44 + 20}
-                stroke="var(--border)"
-              />
-              {visibleIntervals
-                .filter((i) => i.lane === lane)
-                .map((i) => (
-                  <rect
-                    key={i.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Inspect ${label(i.kind)}: ${duration(i.duration)}, ${date(i.started_at)}`}
-                    className="cursor-pointer focus:outline-2 focus:outline-primary"
-                    onClick={() =>
-                      setInspection(
-                        `${i.lane}: ${label(i.kind)}. Started ${date(i.started_at)}. Recorded duration: ${duration(i.duration)}.`,
-                      )
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setInspection(
-                          `${i.lane}: ${label(i.kind)}. Started ${date(i.started_at)}. Recorded duration: ${duration(i.duration)}.`,
-                        );
-                      }
-                    }}
-                    x={x(i.started_at)}
-                    y={index * 44 + 8}
-                    width={Math.max(
-                      2,
-                      x(i.ended_at ?? i.started_at + i.duration) -
-                        x(i.started_at),
-                    )}
-                    height="24"
-                    rx="3"
-                    fill={
-                      lane === "State"
-                        ? stateColor(i.kind)
-                        : colors[index % colors.length]
-                    }
+          <svg
+            role="img"
+            aria-label="Recorded minutes by state; Y axis: minutes, X axis: state"
+            viewBox={`0 0 ${barWidth} 300`}
+            className="min-w-[760px] w-full"
+          >
+            <title>Recorded minutes by state</title>
+            <text x="65" y="16" fontSize="12" fill="var(--muted-foreground)">
+              Minutes
+            </text>
+            {Array.from({ length: 5 }, (_, index) => {
+              const y = 230 - index * 45;
+              return (
+                <g key={index}>
+                  <line
+                    x1="65"
+                    x2={barWidth - 20}
+                    y1={y}
+                    y2={y}
+                    stroke="var(--border)"
+                  />
+                  <text
+                    x="53"
+                    y={y + 4}
+                    textAnchor="end"
+                    fontSize="11"
+                    fill="var(--muted-foreground)"
                   >
-                    <title>{`${label(i.kind)} · ${format(i.duration, 2)}s · ${date(i.started_at)}`}</title>
+                    {format((barCeiling * index) / 4, 1)}
+                  </text>
+                </g>
+              );
+            })}
+            {stateTotals.map(([kind, minutes], index) => {
+              const center = 65 + barSlot * (index + 0.5);
+              const height = (minutes / barCeiling) * 180;
+              return (
+                <g key={kind}>
+                  <rect
+                    x={center - 24}
+                    y={230 - height}
+                    width="48"
+                    height={height}
+                    rx="3"
+                    fill={stateColor(kind)}
+                  >
+                    <title>{`${label(kind)}: ${format(minutes, 2)} minutes`}</title>
                   </rect>
-                ))}
-            </g>
-          ))}
-          <text
-            x="0"
-            y={lanes.length * 44 + 25}
-            fill="var(--muted-foreground)"
-            fontSize="11"
-          >
-            Diagnostics / outcomes
-          </text>
-          {markers.map((m) => (
-            <circle
-              key={m.event_id}
-              role="button"
-              tabIndex={0}
-              aria-label={`Inspect ${m.name} at ${date(m.at)}`}
-              className="cursor-pointer focus:outline-2 focus:outline-primary"
-              onClick={() =>
-                setInspection(
-                  `${m.name}: ${String(m.properties.reason || m.properties.status || "No reason recorded")}. ${date(m.at)} (sequence ${m.sequence}).`,
-                )
-              }
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setInspection(
-                    `${m.name}: ${String(m.properties.reason || m.properties.status || "No reason recorded")}. ${date(m.at)} (sequence ${m.sequence}).`,
-                  );
-                }
-              }}
-              cx={x(m.at)}
-              cy={lanes.length * 44 + 20}
-              r="5"
-              fill={m.name.includes("error") ? "#b32d37" : "#526d8e"}
+                  <text
+                    x={center}
+                    y={220 - height}
+                    textAnchor="middle"
+                    fontSize="11"
+                    fill="currentColor"
+                  >
+                    {format(minutes, 2)}
+                  </text>
+                  <text
+                    x={center}
+                    y="254"
+                    textAnchor="middle"
+                    fontSize="11"
+                    fill="var(--muted-foreground)"
+                  >
+                    {label(kind)}
+                  </text>
+                </g>
+              );
+            })}
+            <text
+              x={barWidth / 2}
+              y="287"
+              textAnchor="middle"
+              fontSize="12"
+              fill="var(--muted-foreground)"
             >
-              <title>{`${m.name} · ${String(m.properties.reason || m.properties.status || "")} · ${date(m.at)}`}</title>
-            </circle>
-          ))}
-          <text
-            x="180"
-            y={height - 25}
-            fontSize="10"
-            fill="var(--muted-foreground)"
-          >
-            {date(start)}
-          </text>
-          <text
-            x="900"
-            y={height - 25}
-            textAnchor="end"
-            fontSize="10"
-            fill="var(--muted-foreground)"
-          >
-            {date(end)}
-          </text>
-        </svg>
-      </div>
-      {inspection && (
-        <p
-          role="status"
-          className="rounded-xl border border-border bg-muted/50 p-4 text-sm leading-6"
-        >
-          {inspection}
-        </p>
+              State
+            </text>
+          </svg>
+        </div>
       )}
       <details>
         <summary className="min-h-11 cursor-pointer py-3 text-sm">
-          Inspect interval values ({intervals.length})
+          Inspect event timeline
         </summary>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[650px] text-left text-xs tabular-nums">
-            <thead>
-              <tr className="border-b border-border">
-                {[
-                  "Lane",
-                  "Kind",
-                  "Started · local time",
-                  "Recorded duration",
-                ].map((h) => (
-                  <th className="py-3" key={h}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {selected.map((i) => (
-                <tr
-                  key={`${i.lane}/${i.id}`}
-                  className="border-b border-border/60"
-                >
-                  <td className="py-3">{i.lane}</td>
-                  <td>{label(i.kind)}</td>
-                  <td>{date(i.started_at)}</td>
-                  <td>{format(i.duration, 2)} s</td>
-                </tr>
+        <div className="space-y-4">
+          <p className="text-xs leading-5 text-muted-foreground">
+            Blank space is unobserved time. Overlapping lanes measure different
+            things and must not be added. Times are in your local timezone.
+          </p>
+          {buddyCount > 0 && (
+            <label className="flex min-h-11 items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={showBuddies}
+                onChange={(e) => setShowBuddies(e.target.checked)}
+                className="size-4 accent-primary"
+              />
+              Show buddy lanes ({buddyCount})
+            </label>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Recorded timeline span: {duration(span)}. Select an interval or
+            marker to inspect it.
+          </p>
+          <div
+            className="flex flex-wrap gap-4 text-xs text-muted-foreground"
+            aria-label="State lane legend"
+          >
+            {[
+              ["Focused", "#087e83"],
+              ["Preparation", "#8b642f"],
+              ["Manual break", "#986785"],
+              ["Technical", "#b32d37"],
+              ["Other / away", "#65716d"],
+            ].map(([name, color]) => (
+              <span key={name} className="inline-flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className="size-2 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                {name}
+              </span>
+            ))}
+          </div>
+          <div
+            role="region"
+            aria-label="Session timeline diagram"
+            tabIndex={0}
+            className="max-h-[32rem] overflow-auto rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            <svg
+              role="group"
+              aria-label="Session timeline with state, presence, buddy and diagnostic lanes. Complete interval values are in the table below."
+              viewBox={`0 0 940 ${height}`}
+              className="min-w-[760px] w-full"
+            >
+              <title>{`Session timeline from ${date(start)} to ${date(end)}`}</title>
+              {lanes.map((lane, index) => (
+                <g key={lane}>
+                  <text
+                    x="0"
+                    y={index * 44 + 25}
+                    fill="var(--muted-foreground)"
+                    fontSize="11"
+                  >
+                    {lane.slice(0, 27)}
+                  </text>
+                  <line
+                    x1="180"
+                    x2="900"
+                    y1={index * 44 + 20}
+                    y2={index * 44 + 20}
+                    stroke="var(--border)"
+                  />
+                  {visibleIntervals
+                    .filter((i) => i.lane === lane)
+                    .map((i) => (
+                      <rect
+                        key={i.id}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Inspect ${label(i.kind)}: ${duration(i.duration)}, ${date(i.started_at)}`}
+                        className="cursor-pointer focus:outline-2 focus:outline-primary"
+                        onClick={() =>
+                          setInspection(
+                            `${i.lane}: ${label(i.kind)}. Started ${date(i.started_at)}. Recorded duration: ${duration(i.duration)}.`,
+                          )
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setInspection(
+                              `${i.lane}: ${label(i.kind)}. Started ${date(i.started_at)}. Recorded duration: ${duration(i.duration)}.`,
+                            );
+                          }
+                        }}
+                        x={x(i.started_at)}
+                        y={index * 44 + 8}
+                        width={Math.max(
+                          2,
+                          x(i.ended_at ?? i.started_at + i.duration) -
+                            x(i.started_at),
+                        )}
+                        height="24"
+                        rx="3"
+                        fill={
+                          lane === "State"
+                            ? stateColor(i.kind)
+                            : colors[index % colors.length]
+                        }
+                      >
+                        <title>{`${label(i.kind)} · ${format(i.duration, 2)}s · ${date(i.started_at)}`}</title>
+                      </rect>
+                    ))}
+                </g>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-3 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            disabled={!page}
-            onClick={() => setPage(page - 1)}
-          >
-            Previous
-          </Button>
-          <span className="text-xs">Page {page + 1}</span>
-          <Button
-            variant="ghost"
-            disabled={(page + 1) * 50 >= intervals.length}
-            onClick={() => setPage(page + 1)}
-          >
-            Next
-          </Button>
+              <text
+                x="0"
+                y={lanes.length * 44 + 25}
+                fill="var(--muted-foreground)"
+                fontSize="11"
+              >
+                Diagnostics / outcomes
+              </text>
+              {markers.map((m) => (
+                <circle
+                  key={m.event_id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Inspect ${m.name} at ${date(m.at)}`}
+                  className="cursor-pointer focus:outline-2 focus:outline-primary"
+                  onClick={() =>
+                    setInspection(
+                      `${m.name}: ${String(m.properties.reason || m.properties.status || "No reason recorded")}. ${date(m.at)} (sequence ${m.sequence}).`,
+                    )
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setInspection(
+                        `${m.name}: ${String(m.properties.reason || m.properties.status || "No reason recorded")}. ${date(m.at)} (sequence ${m.sequence}).`,
+                      );
+                    }
+                  }}
+                  cx={x(m.at)}
+                  cy={lanes.length * 44 + 20}
+                  r="5"
+                  fill={m.name.includes("error") ? "#b32d37" : "#526d8e"}
+                >
+                  <title>{`${m.name} · ${String(m.properties.reason || m.properties.status || "")} · ${date(m.at)}`}</title>
+                </circle>
+              ))}
+              <text
+                x="180"
+                y={height - 25}
+                fontSize="10"
+                fill="var(--muted-foreground)"
+              >
+                {date(start)}
+              </text>
+              <text
+                x="900"
+                y={height - 25}
+                textAnchor="end"
+                fontSize="10"
+                fill="var(--muted-foreground)"
+              >
+                {date(end)}
+              </text>
+            </svg>
+          </div>
+          {inspection && (
+            <p
+              role="status"
+              className="rounded-xl border border-border bg-muted/50 p-4 text-sm leading-6"
+            >
+              {inspection}
+            </p>
+          )}
+          <details>
+            <summary className="min-h-11 cursor-pointer py-3 text-sm">
+              Inspect interval values ({intervals.length})
+            </summary>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[650px] text-left text-xs tabular-nums">
+                <thead>
+                  <tr className="border-b border-border">
+                    {[
+                      "Lane",
+                      "Kind",
+                      "Started · local time",
+                      "Recorded duration",
+                    ].map((h) => (
+                      <th className="py-3" key={h}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {selected.map((i) => (
+                    <tr
+                      key={`${i.lane}/${i.id}`}
+                      className="border-b border-border/60"
+                    >
+                      <td className="py-3">{i.lane}</td>
+                      <td>{label(i.kind)}</td>
+                      <td>{date(i.started_at)}</td>
+                      <td>{format(i.duration, 2)} s</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <Button
+                variant="ghost"
+                disabled={!page}
+                onClick={() => setPage(page - 1)}
+              >
+                Previous
+              </Button>
+              <span className="text-xs">Page {page + 1}</span>
+              <Button
+                variant="ghost"
+                disabled={(page + 1) * 50 >= intervals.length}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </details>
         </div>
       </details>
       <h3 className="pt-3 text-sm font-medium">Progress checkpoints</h3>
       <p className="text-xs text-muted-foreground">
         {data.checkpoints.length} of {data.checkpoint_count} checkpoints shown.
         Each point is a reported measurement. No progress is inferred between
-        observations; both diagrams use the same time axis.
+        observations. Times show minutes since the start of the recorded
+        timeline.
       </p>
       {!checkpoints.length ? (
         <Empty>No measured progress checkpoints available.</Empty>
@@ -357,12 +478,48 @@ export function Timeline({ data }: { data: Detail }) {
                 {format((span * i) / 4 / 60, 1)} min
               </text>
             ))}
-            <text x="0" y="20" fontSize="11">
+            <text
+              x="150"
+              y="20"
+              textAnchor="end"
+              fontSize="11"
+              visibility={finalY !== null && finalY < 30 ? "hidden" : "visible"}
+            >
               100%
             </text>
-            <text x="20" y="115" fontSize="11">
+            <text
+              x="150"
+              y="115"
+              textAnchor="end"
+              fontSize="11"
+              visibility={finalY !== null && finalY > 95 ? "hidden" : "visible"}
+            >
               0%
             </text>
+            {finalCheckpoint && finalY !== null && (
+              <g
+                aria-label={`Final focus progress: ${percent(finalCheckpoint.progress)}`}
+              >
+                <line
+                  x1="180"
+                  x2={x(finalCheckpoint.at)}
+                  y1={finalY}
+                  y2={finalY}
+                  stroke="#087e83"
+                  strokeDasharray="4 4"
+                />
+                <text
+                  x="150"
+                  y={finalY + 4}
+                  textAnchor="end"
+                  fontSize="12"
+                  fontWeight="600"
+                  fill="#087e83"
+                >
+                  {percent(finalCheckpoint.progress)} final
+                </text>
+              </g>
+            )}
             {checkpoints.map((c) => (
               <circle
                 key={c.sequence}

@@ -203,7 +203,7 @@ it("keeps snapshot state intervals out of the presence lane", () => {
   expect(
     screen.getByRole("group", { name: /Session timeline with state/ }),
   ).toBeInTheDocument();
-  expect(screen.getAllByRole("img")).toHaveLength(1);
+  expect(screen.getAllByRole("img")).toHaveLength(2);
 });
 it("shows Telemetry navigation to ordinary administrators", () => {
   render(
