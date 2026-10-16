@@ -14,12 +14,14 @@ import {
 } from "@/components/admin/telemetry/dashboard";
 import { Bars, Funnel } from "@/components/admin/telemetry/charts";
 import { Timeline } from "@/components/admin/telemetry/timeline";
+import { RecordedTime } from "@/components/admin/telemetry/session-summary";
 import { AdminShell } from "@/components/admin/shell";
 import {
   apiQuery,
   date,
   duration,
   rate,
+  pianoTelemetry,
   reportQuery,
   type Detail,
   type Session,
@@ -56,6 +58,66 @@ const session: Session = {
   run_count: 2,
   totals: { progress: 0.3 },
 };
+
+it("shows piano duration and tracking status in the session list and detail measurements", () => {
+  const pianoSession = {
+    ...session,
+    totals: {
+      present_seconds: 10,
+      piano_play_seconds: 42.5,
+      piano_tracking_status: "paused",
+    },
+  };
+  render(
+    <SessionsPanel
+      query={query}
+      data={
+        { ...query, items: [pianoSession], next_cursor: null } as SessionPage
+      }
+    />,
+  );
+  expect(screen.getByText("Piano: 42.5 seconds")).toBeInTheDocument();
+  expect(screen.getByText("Paused")).toBeInTheDocument();
+  render(<RecordedTime data={{ session: pianoSession }} />);
+  expect(
+    screen.getByText("Piano playing time").parentElement,
+  ).toHaveTextContent("42.5 seconds");
+  expect(
+    screen.getByText(/Paused. Measured independently/),
+  ).toBeInTheDocument();
+});
+
+it("distinguishes missing piano telemetry, measured zero, and unavailable tracking", () => {
+  expect(pianoTelemetry({}).duration).toBe("Unavailable");
+  expect(pianoTelemetry({ piano_play_seconds: 0 }).duration).toBe("0 seconds");
+  expect(
+    pianoTelemetry({
+      piano_play_seconds: 0,
+      piano_tracking_status: "listening",
+    }).duration,
+  ).toBe("0 seconds");
+  for (const status of [
+    "unavailable",
+    "permissionDenied",
+    "notTracked",
+    "needsValidation",
+  ]) {
+    expect(
+      pianoTelemetry({ piano_play_seconds: 0, piano_tracking_status: status })
+        .duration,
+    ).toBe("Unavailable");
+    expect(
+      pianoTelemetry({
+        piano_play_seconds: 42.5,
+        piano_tracking_status: status,
+      }).duration,
+    ).toBe("42.5 seconds");
+  }
+  render(<RecordedTime data={{ session }} />);
+  expect(
+    screen.getByText("Piano playing time").parentElement,
+  ).toHaveTextContent("Unavailable");
+});
 it("defaults to a seven-day production snapshot and excludes UI-only API parameters", () => {
   expect(reportQuery({ as_of: query.as_of })).toMatchObject({
     environment: "production",

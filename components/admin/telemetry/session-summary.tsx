@@ -10,6 +10,7 @@ import {
   label,
   number,
   percent,
+  pianoTelemetry,
   type Detail,
 } from "@/lib/telemetry";
 import { sessionInsights } from "@/lib/session-insights";
@@ -197,7 +198,8 @@ export function StateBreakdown({ data }: { data: Detail }) {
   );
 }
 
-export function RecordedTime({ data }: { data: Detail }) {
+export function RecordedTime({ data }: { data: Pick<Detail, "session"> }) {
+  const piano = pianoTelemetry(data.session.totals);
   const items = [
     ["Confirmed focus", "present_seconds", "Time recorded as present."],
     ["Away", "away_seconds", "Recorded absence; can overlap state durations."],
@@ -215,6 +217,15 @@ export function RecordedTime({ data }: { data: Detail }) {
         Latest reported totals. Categories can overlap and must not be added.
       </p>
       <dl className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <dt className="text-xs text-muted-foreground">Piano playing time</dt>
+          <dd className="mt-1 font-mono text-lg font-semibold">
+            {piano.duration}
+          </dd>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            {piano.status}. Measured independently of camera-confirmed focus.
+          </p>
+        </div>
         {items.map(([title, key, note]) => (
           <div key={key}>
             <dt className="text-xs text-muted-foreground">{title}</dt>

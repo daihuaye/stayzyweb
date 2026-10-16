@@ -19,6 +19,7 @@ import {
   label,
   number,
   percent,
+  pianoTelemetry,
   rate,
   type Meta,
   sessionHref,
@@ -632,6 +633,12 @@ export function SessionsPanel({
                       </p>
                     </td>
                     <td className="whitespace-nowrap px-2 py-4 tabular-nums">
+                      <p className="mb-2">
+                        Piano: {pianoTelemetry(row.totals).duration}
+                      </p>
+                      <p className="mb-2 text-xs text-muted-foreground">
+                        {pianoTelemetry(row.totals).status}
+                      </p>
                       {[
                         ["Focus", row.totals.present_seconds],
                         ["Away", row.totals.away_seconds],

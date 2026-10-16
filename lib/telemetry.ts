@@ -136,6 +136,32 @@ export function rate(numerator: unknown, denominator: unknown) {
     d = number(denominator);
   return n === null || d === null || d <= 0 ? "Unavailable" : percent(n / d);
 }
+export function pianoTelemetry(totals: Properties) {
+  const status = totals.piano_tracking_status;
+  const statuses: Record<string, string> = {
+    notTracked: "Not tracked",
+    listening: "Listening",
+    playing: "Playing",
+    paused: "Paused",
+    permissionDenied: "Microphone permission denied",
+    unavailable: "Tracking unavailable",
+    needsValidation: "Needs validation",
+  };
+  const seconds = number(totals.piano_play_seconds);
+  const missingMeasurement =
+    seconds === 0 &&
+    (status === "permissionDenied" ||
+      status === "unavailable" ||
+      status === "notTracked" ||
+      status === "needsValidation");
+  return {
+    duration: duration(missingMeasurement ? null : seconds),
+    status:
+      typeof status === "string"
+        ? (statuses[status] ?? "Unknown status")
+        : "Status not reported",
+  };
+}
 export function percent(value: unknown) {
   const n = number(value);
   return n === null ? "Unavailable" : `${format(n * 100, 1)}%`;
