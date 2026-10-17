@@ -28,7 +28,7 @@ function stateColor(kind: string) {
     stateGroups[stateGroups.length - 1]
   ).color;
 }
-export function Timeline({ data }: { data: Detail }) {
+function LegacyTimeline({ data }: { data: Detail }) {
   const timeZone = useLocalTimeZone();
   const date = (value: string | number) => formatDate(value, timeZone);
   const [page, setPage] = useState(0);
@@ -560,5 +560,76 @@ export function Timeline({ data }: { data: Detail }) {
         </div>
       </details>
     </div>
+  );
+}
+
+export function Timeline({ data }: { data: Detail }) {
+  if (!data.transitions?.length) return <LegacyTimeline data={data} />;
+  return <TransitionTimeline data={data} />;
+}
+
+function TransitionTimeline({ data }: { data: Detail }) {
+  const timeZone = useLocalTimeZone();
+  const [page, setPage] = useState(0);
+  const changes = data.transitions ?? [];
+  const pageCount = Math.max(1, Math.ceil(changes.length / 50));
+  const currentPage = Math.min(page, pageCount - 1);
+  return (
+    <section
+      id="timeline"
+      aria-label="State changes"
+      className="rounded-2xl border border-border bg-card p-5"
+    >
+      <h2 className="text-lg font-semibold">State changes</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Updated at{" "}
+        {formatDate(
+          data.session.totals_updated_at ?? changes.at(-1)!.occurred_at,
+          timeZone,
+        )}
+      </p>
+      <ol className="mt-4 divide-y divide-border">
+        {changes
+          .slice(currentPage * 50, (currentPage + 1) * 50)
+          .map((change) => (
+            <li
+              key={change.event_id}
+              className="flex items-baseline justify-between gap-4 py-2"
+            >
+              <span>{label(String(change.properties.state))}</span>
+              <time
+                dateTime={change.occurred_at}
+                className="text-sm tabular-nums text-muted-foreground"
+              >
+                {new Intl.DateTimeFormat(undefined, {
+                  timeZone,
+                  hour: "numeric",
+                  minute: "2-digit",
+                  second: "2-digit",
+                }).format(new Date(change.occurred_at))}
+              </time>
+            </li>
+          ))}
+      </ol>
+      {pageCount > 1 && (
+        <div className="mt-3 flex items-center gap-3">
+          <Button
+            disabled={currentPage === 0}
+            onClick={() => setPage(currentPage - 1)}
+          >
+            Previous
+          </Button>
+          <span>
+            {currentPage + 1} / {pageCount}
+          </span>
+          <Button
+            disabled={currentPage + 1 === pageCount}
+            onClick={() => setPage(currentPage + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+    </section>
   );
 }

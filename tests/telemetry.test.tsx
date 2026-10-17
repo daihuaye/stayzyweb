@@ -410,3 +410,69 @@ it("explains health measurements with sample counts and distinct latency units",
   expect(screen.getByText("Unit: errors")).toBeInTheDocument();
   expect(screen.getAllByText("Unit: milliseconds")).toHaveLength(2);
 });
+
+it("shows timestamped state changes without legacy checkpoint details", () => {
+  const data = {
+    session: { ...session, totals_updated_at: query.end },
+    transitions: [
+      {
+        event_id: "a",
+        occurred_at: query.start,
+        properties: { state: "focused" },
+      },
+      { event_id: "b", occurred_at: query.end, properties: { state: "away" } },
+    ],
+    checkpoints: [{ at: 110, sequence: 1 }],
+  } as unknown as Detail;
+  const { container } = render(<Timeline data={data} />);
+  expect(
+    screen.getByRole("heading", { name: "State changes" }),
+  ).toBeInTheDocument();
+  expect(container.querySelectorAll("li time")).toHaveLength(2);
+  expect(container.querySelector("li time")).toHaveAttribute(
+    "datetime",
+    query.start,
+  );
+  expect(screen.getByText(/Updated at/)).toBeInTheDocument();
+  expect(screen.queryByText("View checkpoint data")).not.toBeInTheDocument();
+});
+
+it("keeps filtered transitions separate from measured focus and piano time", () => {
+  const data = {
+    session: {
+      ...session,
+      totals: {
+        present_seconds: 12,
+        uncertain_seconds: 2,
+        piano_play_seconds: 9,
+        piano_tracking_status: "paused",
+      },
+    },
+    transitions: [
+      {
+        event_id: "a",
+        occurred_at: query.start,
+        properties: { state: "focused", duration: 0 },
+      },
+      {
+        event_id: "b",
+        occurred_at: query.end,
+        properties: { state: "away", previous_state: "focused", duration: 120 },
+      },
+    ],
+  } as unknown as Detail;
+  const { container } = render(
+    <>
+      <Timeline data={data} />
+      <RecordedTime data={data} />
+    </>,
+  );
+  expect(container.querySelectorAll("li time")).toHaveLength(2);
+  expect(screen.queryByText("Checking presence")).not.toBeInTheDocument();
+  expect(screen.getByText("Confirmed focus").parentElement).toHaveTextContent(
+    "12 seconds",
+  );
+  expect(
+    screen.getByText("Piano playing time").parentElement,
+  ).toHaveTextContent("9 seconds");
+});

@@ -38,6 +38,7 @@ export type Session = {
   error_count: number;
   run_count: number;
   totals: Properties;
+  totals_updated_at?: string | null;
   timeline?: Snapshot | null;
 };
 export type Overview = Meta & {
@@ -95,6 +96,7 @@ export type Interval = {
   lane?: string;
 };
 export type Detail = Meta & {
+  transitions?: EventRecord[];
   session: Session;
   configuration_changes: EventRecord[];
   outcomes: EventRecord[];

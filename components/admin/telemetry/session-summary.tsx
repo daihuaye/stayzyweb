@@ -68,6 +68,11 @@ export function SessionSummary({ data }: { data: Detail }) {
             {label(s.status)}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
+            {s.totals_updated_at && (
+              <>
+                Updated at <LocalTime value={s.totals_updated_at} /> ·{" "}
+              </>
+            )}
             Last recorded state: {label(s.state)}
             {outcomeReason && ` (${outcomeReason})`}
           </p>
