@@ -78,8 +78,23 @@ export function AppTour() {
   function select(index: number, focus = false) {
     const next = (index + features.length) % features.length;
     setActive(next);
+    const selectedTab = tabs.current[next];
+    const tabList = selectedTab?.parentElement;
+    // Keep the active feature visible on narrow screens without moving the page.
+    if (selectedTab && tabList && tabList.scrollWidth > tabList.clientWidth) {
+      const selectedBounds = selectedTab.getBoundingClientRect();
+      const listBounds = tabList.getBoundingClientRect();
+      tabList.scrollTo({
+        left:
+          tabList.scrollLeft +
+          selectedBounds.left -
+          listBounds.left -
+          (tabList.clientWidth - selectedBounds.width) / 2,
+        behavior: "instant",
+      });
+    }
     if (focus) {
-      tabs.current[next]?.focus();
+      selectedTab?.focus();
       tabs.current[next]?.scrollIntoView({
         block: "nearest",
         inline: "nearest",
@@ -145,7 +160,7 @@ export function AppTour() {
         id={`tour-panel-${active}`}
         aria-labelledby={`tour-tab-${active}`}
         tabIndex={0}
-        className="tour-panel"
+        className={`tour-panel${active === 2 ? " tour-panel-calendar" : ""}`}
       >
         <div className="tour-copy">
           <h3 className="tour-title" key={active}>
@@ -224,7 +239,7 @@ export function AppTour() {
                 alt={item.screen.alt}
                 sizes={
                   index === 2
-                    ? "(max-width: 767px) 310px, 340px"
+                    ? "(max-width: 767px) calc(100vw - 90px), (max-width: 1023px) 480px, 340px"
                     : "(max-width: 767px) 220px, 250px"
                 }
                 hidden={index !== active}
