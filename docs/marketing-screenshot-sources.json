@@ -1,0 +1,56 @@
+[
+  {
+    "asset": "/marketing/ios-2026-10/setup.png",
+    "source": "stayzy/Docs/AppStore/Release-2026-10-25/Screenshots/iPhone-large/01-piano-setup.png",
+    "captureDate": "2026-10-25",
+    "sha256": "45cb2f74604520661671a3d1f41ba6bbdd09038feae69817f0e77448fd54b952",
+    "nativeCapture": true,
+    "sampleData": true,
+    "retouched": false
+  },
+  {
+    "asset": "/marketing/ios-2026-10/history.png",
+    "source": "stayzy/Docs/AppStore/Release-2026-10-25/Screenshots/iPhone-large/04-history.png",
+    "captureDate": "2026-10-25",
+    "sha256": "6b495323d092277cbc144648fdd21693121f758702ff841019eb374c7b94b9c8",
+    "nativeCapture": true,
+    "sampleData": true,
+    "retouched": false
+  },
+  {
+    "asset": "/marketing/ios-2026-10/session-details.png",
+    "source": "stayzy/Docs/AppStore/Release-2026-10-25/Screenshots/iPhone-large/05-session-details.png",
+    "captureDate": "2026-10-25",
+    "sha256": "77991d4391a3aff8e033dfc581439cd485980f3d0595cc628da0dba33344aa4f",
+    "nativeCapture": true,
+    "sampleData": true,
+    "retouched": false
+  },
+  {
+    "asset": "/marketing/ios-2026-10/calendar.png",
+    "source": "stayzy/Docs/AppStore/Release-2026-10-25/Screenshots/iPad-13/06-month-calendar.png",
+    "captureDate": "2026-10-25",
+    "sha256": "bf0c2b61c5be23ae0a904863e3408a3854e7e7b1a03e3a39adfe4d7ff2108ba2",
+    "nativeCapture": true,
+    "sampleData": true,
+    "retouched": false
+  },
+  {
+    "asset": "/marketing/ios-2026-10/piano-focus.png",
+    "source": "stayzy/Docs/AppStore/Release-2026-10-19/Screenshots/iPhone-6.9/02-piano-session.png",
+    "captureDate": "2026-10-19",
+    "sha256": "3407db67c4246458c99f284329fa4250f2285cb2249d2481ce438bd7aaade407",
+    "nativeCapture": true,
+    "sampleData": true,
+    "retouched": false
+  },
+  {
+    "asset": "/marketing/ios-2026-10/companion.png",
+    "source": "stayzy/Docs/AppStore/Release-2026-10-19/Screenshots/iPhone-6.9/03-fullscreen-buddy.png",
+    "captureDate": "2026-10-19",
+    "sha256": "f1922c1c82d5cfe7554d74bd9edc177a369a56d617ec8a99e328609b34d07838",
+    "nativeCapture": true,
+    "sampleData": true,
+    "retouched": false
+  }
+]

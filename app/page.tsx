@@ -58,7 +58,7 @@ export default function Home() {
             </h1>
             <p>
               A friendly companion for reading, homework, and piano practice.
-              Make a small start, and see your progress.
+              Start small and see your progress.
             </p>
             <div className="hero-actions">
               <a className="site-button" href={download}>
@@ -131,6 +131,14 @@ export default function Home() {
           <a className="site-button" href={download}>
             Get Stayzy <ArrowUpRight size={18} />
           </a>
+          <div className="closing-scene">
+            <Image
+              src="/marketing/focus-space.png"
+              alt="An open notebook, teal pen, and piano keys in a quiet study space"
+              fill
+              sizes="(max-width: 767px) 100vw, 1184px"
+            />
+          </div>
         </section>
       </main>
       <footer className="site-footer site-container">

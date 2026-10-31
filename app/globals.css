@@ -144,7 +144,7 @@ button:not(:disabled),
   margin-inline: auto;
 }
 .site-header {
-  height: 80px;
+  height: 72px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -243,7 +243,7 @@ button:not(:disabled),
   grid-template-columns: 1.1fr 1fr;
   gap: 48px;
   align-items: center;
-  padding-block: 32px 52px;
+  padding-block: 28px 40px;
 }
 .hero > * {
   min-width: 0;
@@ -273,16 +273,16 @@ button:not(:disabled),
   margin-top: 32px;
 }
 .hero-preview {
-  padding: 24px 16px 18px;
+  padding: 16px;
   border-radius: 24px;
-  background: var(--stage-rose);
+  background: var(--stage-teal);
 }
 .hero-phones {
   position: relative;
   height: auto;
   aspect-ratio: 0.86;
   max-width: 400px;
-  margin: 0 auto 26px;
+  margin: 0 auto 16px;
 }
 .hero-phone {
   position: absolute;
@@ -290,7 +290,7 @@ button:not(:disabled),
   height: auto;
   border: 5px solid #fefefd;
   border-radius: 28px;
-  box-shadow: 0 22px 42px #673e5026;
+  box-shadow: 0 22px 42px #234c4926;
 }
 .hero-phone-back {
   width: 47%;
@@ -332,22 +332,6 @@ button:not(:disabled),
 }
 .activity-picker button:hover {
   transform: translateY(-2px);
-}
-.activity-progress {
-  width: min(180px, 60%);
-  height: 3px;
-  margin: 12px auto 0;
-  overflow: hidden;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--primary) 15%, transparent);
-}
-.activity-progress-fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--primary);
-  transform: scaleX(0);
-  transform-origin: left;
 }
 .discovery-strip {
   background: var(--muted);
@@ -508,6 +492,10 @@ button:not(:disabled),
   background: #fefefd;
   box-shadow: 0 18px 40px #253b3829;
 }
+.tour-tablet {
+  width: 340px;
+  border-radius: 20px;
+}
 .privacy-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -552,6 +540,18 @@ button:not(:disabled),
   margin-block: 16px 26px;
   font-size: 17px;
 }
+.closing-scene {
+  position: relative;
+  aspect-ratio: 2.6;
+  overflow: hidden;
+  border-radius: 24px;
+  margin-top: 36px;
+  background: var(--muted);
+}
+.closing-scene img {
+  object-fit: cover;
+  object-position: center 60%;
+}
 .site-footer {
   display: flex;
   align-items: center;
@@ -584,15 +584,6 @@ button:not(:disabled),
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .hero-copy {
-    animation: welcome-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .hero-preview {
-    animation: welcome-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .hero-phone-front {
-    animation: phone-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-  }
   .tour-title {
     animation: welcome-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -604,16 +595,6 @@ button:not(:disabled),
     to {
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-  @keyframes phone-in {
-    from {
-      opacity: 0.4;
-      transform: translateY(12px) rotate(-6deg);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) rotate(-6deg);
     }
   }
 }
@@ -750,6 +731,9 @@ button:not(:disabled),
   .tour-phone {
     width: 230px;
   }
+  .tour-tablet {
+    width: 310px;
+  }
   .privacy-section {
     grid-template-columns: 1fr;
     gap: 28px;
@@ -762,6 +746,10 @@ button:not(:disabled),
   }
   .closing-section {
     padding-block: 40px;
+  }
+  .closing-scene {
+    aspect-ratio: 1.5;
+    margin-top: 28px;
   }
   .site-footer {
     display: grid;

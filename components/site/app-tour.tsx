@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { marketingScreens } from "@/lib/marketing-screens";
 import { useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -20,21 +21,19 @@ const features = [
     icon: Eye,
     title: "Your work deserves your attention.",
     accent: "Let Stayzy watch the clock.",
-    body: "Stayzy tracks the time you’re present while you study. Step away when you need to, then return to the work in front of you.",
-    note: "Camera-based presence tracking • Keep Stayzy open during your session",
-    image: "piano-focus",
-    alt: "Piano practice session with a pink heart companion and present, away, piano, and elapsed counters",
+    body: "See confirmed presence as you work. In Piano Practice, detected playing can also count toward your focus goal.",
+    note: "Keep Stayzy open. Detected piano playing can also count toward a Piano Practice goal.",
+    screen: marketingScreens.focus,
     color: "var(--stage-rose)",
   },
   {
     label: "See your time",
     icon: Timer,
-    title: "A clearer picture",
-    accent: "of your study time.",
-    body: "See time present, time away, and breaks in one live report. Follow your goal progress with less logging by hand.",
+    title: "Understand the time",
+    accent: "behind your progress.",
+    body: "Open a saved session for a clearer breakdown of time present, time away, breaks, and moments when presence could not be confirmed.",
     note: "Time present measures detected presence, not attention or work quality.",
-    image: "piano-report",
-    alt: "Live report showing goal progress and separate time counters",
+    screen: marketingScreens.details,
     color: "var(--stage-teal)",
   },
   {
@@ -42,10 +41,9 @@ const features = [
     icon: CalendarDays,
     title: "Small moments.",
     accent: "A bigger picture.",
-    body: "See your sessions across the month. Daily progress rings and stars for achieved goals help you look back on the time you made for yourself.",
+    body: "Move from your week to the full month. Progress rings show your sessions, and stars mark days with a goal achieved.",
     note: "A star marks a day with at least one goal achieved.",
-    image: "calendar",
-    alt: "September calendar with daily progress rings and a star marking a completed goal",
+    screen: marketingScreens.calendar,
     color: "var(--stage-neutral)",
   },
   {
@@ -54,9 +52,8 @@ const features = [
     title: "A little company.",
     accent: "Room to focus.",
     body: "Let your companion take the screen for a calmer study space. Your session details are a tap away whenever you need them.",
-    note: "Full-screen companion • Your previous focus time still counts toward your goal",
-    image: "heart-companion",
-    alt: "Full-screen pink heart companion offering encouragement",
+    note: "Tap to switch between your companion and session details.",
+    screen: marketingScreens.companion,
     color: "var(--stage-rose)",
   },
   {
@@ -64,10 +61,9 @@ const features = [
     icon: History,
     title: "Your effort,",
     accent: "all in one place.",
-    body: "Review saved sessions and time present. Use your history to find your rhythm and plan your next study block.",
-    note: "Saved sessions • A little perspective for what comes next",
-    image: "practice-history",
-    alt: "Session history with a saved piano practice session",
+    body: "Choose a day to see its focus time, sessions, and goals. Open a saved session whenever you want the details.",
+    note: "Your profiles and session history stay on your device.",
+    screen: marketingScreens.history,
     color: "var(--stage-teal)",
   },
 ] as const;
@@ -198,7 +194,7 @@ export function AppTour() {
                     : "Take a breath. Break time is tracked separately, and your progress is kept."}
               </p>
               <p className="mt-3 text-xs text-muted-foreground">
-                Interactive illustration • No camera access
+                Interactive illustration. No camera access.
               </p>
             </div>
           )}
@@ -220,15 +216,17 @@ export function AppTour() {
           </div>
         </div>
         <div className="tour-stage" style={{ backgroundColor: feature.color }}>
-          <div className="tour-phone">
+          <div className={`tour-phone${active === 2 ? " tour-tablet" : ""}`}>
             {features.map((item, index) => (
               <Image
-                key={item.image}
-                src={`/marketing/${item.image}.png`}
-                alt={item.alt}
-                width={1320}
-                height={2868}
-                sizes="(max-width: 767px) 220px, 250px"
+                key={item.screen.src}
+                {...item.screen}
+                alt={item.screen.alt}
+                sizes={
+                  index === 2
+                    ? "(max-width: 767px) 310px, 340px"
+                    : "(max-width: 767px) 220px, 250px"
+                }
                 hidden={index !== active}
                 className="h-auto w-full"
               />
