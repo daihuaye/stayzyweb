@@ -10,9 +10,14 @@ import {
   percent,
   type Detail,
   type Interval,
+  type EventRecord,
 } from "@/lib/telemetry";
 import { useLocalTimeZone } from "./local-time";
-import { stateGroups, usableIntervals } from "@/lib/session-insights";
+import {
+  condensedTransitions,
+  stateGroups,
+  usableIntervals,
+} from "@/lib/session-insights";
 import { Empty } from "./charts";
 const colors = [
   "#087e83",
@@ -572,7 +577,8 @@ function TransitionTimeline({ data }: { data: Detail }) {
   const timeZone = useLocalTimeZone();
   const [page, setPage] = useState(0);
   const changes = data.transitions ?? [];
-  const pageCount = Math.max(1, Math.ceil(changes.length / 50));
+  const groups = condensedTransitions(changes);
+  const pageCount = Math.max(1, Math.ceil(groups.length / 50));
   const currentPage = Math.min(page, pageCount - 1);
   return (
     <section
@@ -588,28 +594,40 @@ function TransitionTimeline({ data }: { data: Detail }) {
           timeZone,
         )}
       </p>
+      <p className="mt-2 text-xs leading-5 text-muted-foreground">
+        Repeated uncertain and away changes are collapsed. Expand a group to
+        inspect every event. Presence states do not establish piano playing.
+      </p>
       <ol className="mt-4 divide-y divide-border">
-        {changes
-          .slice(currentPage * 50, (currentPage + 1) * 50)
-          .map((change) => (
-            <li
-              key={change.event_id}
-              className="flex items-baseline justify-between gap-4 py-2"
-            >
-              <span>{label(String(change.properties.state))}</span>
-              <time
-                dateTime={change.occurred_at}
-                className="text-sm tabular-nums text-muted-foreground"
+        {groups.slice(currentPage * 50, (currentPage + 1) * 50).map((group) =>
+          group.length > 1 ? (
+            <CondensedChangeGroup
+              key={group[0].event_id}
+              group={group}
+              timeZone={timeZone}
+            />
+          ) : (
+            group.map((change) => (
+              <li
+                key={change.event_id}
+                className="flex items-baseline justify-between gap-4 py-2"
               >
-                {new Intl.DateTimeFormat(undefined, {
-                  timeZone,
-                  hour: "numeric",
-                  minute: "2-digit",
-                  second: "2-digit",
-                }).format(new Date(change.occurred_at))}
-              </time>
-            </li>
-          ))}
+                <span>{label(String(change.properties.state))}</span>
+                <time
+                  dateTime={change.occurred_at}
+                  className="text-sm tabular-nums text-muted-foreground"
+                >
+                  {new Intl.DateTimeFormat(undefined, {
+                    timeZone,
+                    hour: "numeric",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  }).format(new Date(change.occurred_at))}
+                </time>
+              </li>
+            ))
+          ),
+        )}
       </ol>
       {pageCount > 1 && (
         <div className="mt-3 flex items-center gap-3">
@@ -631,5 +649,73 @@ function TransitionTimeline({ data }: { data: Detail }) {
         </div>
       )}
     </section>
+  );
+}
+
+function CondensedChangeGroup({
+  group,
+  timeZone,
+}: {
+  group: EventRecord[];
+  timeZone: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const pageCount = Math.ceil(group.length / 50);
+  const currentPage = Math.min(page, pageCount - 1);
+  return (
+    <li className="py-2">
+      <details onToggle={(event) => setOpen(event.currentTarget.open)}>
+        <summary className="min-h-11 cursor-pointer py-2 text-sm focus-visible:outline-2 focus-visible:outline-primary">
+          Uncertain / away · {group.length} changes
+          <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
+            {formatDate(group[0].occurred_at, timeZone)} →{" "}
+            {formatDate(group.at(-1)!.occurred_at, timeZone)}
+          </span>
+        </summary>
+        {open && (
+          <div>
+            <ol className="ml-4 divide-y divide-border">
+              {group
+                .slice(currentPage * 50, (currentPage + 1) * 50)
+                .map((change) => (
+                  <li
+                    key={change.event_id}
+                    className="flex flex-wrap justify-between gap-2 py-2 text-xs"
+                  >
+                    <span>{label(String(change.properties.state))}</span>
+                    <time dateTime={change.occurred_at}>
+                      {formatDate(change.occurred_at, timeZone)}
+                    </time>
+                  </li>
+                ))}
+            </ol>
+            {pageCount > 1 && (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <Button
+                  variant="ghost"
+                  disabled={currentPage === 0}
+                  onClick={() => setPage(currentPage - 1)}
+                >
+                  Previous events
+                </Button>
+                <span className="text-xs">
+                  Events {currentPage * 50 + 1}–
+                  {Math.min((currentPage + 1) * 50, group.length)} of{" "}
+                  {group.length}
+                </span>
+                <Button
+                  variant="ghost"
+                  disabled={currentPage + 1 === pageCount}
+                  onClick={() => setPage(currentPage + 1)}
+                >
+                  Next events
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </details>
+    </li>
   );
 }
