@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { Card, Empty } from "./charts";
 import { Timeline } from "./timeline";
+import { PianoTimeline } from "./piano-timeline";
 import { ReportSection } from "./report-layout";
 import {
   SessionSummary,
@@ -123,8 +124,12 @@ export function DetailPanel({ data }: { data: Detail }) {
       <ReportSection
         id="session-timeline"
         title="Session timeline"
-        note="Compare minutes by state and measured focus progress. Expand the event timeline or interval table for exact measurements."
+        note="See when piano playing was recorded, then inspect state changes and focus progress."
       >
+        <PianoTimeline
+          key={`piano/${s.session_id}/${data.as_of}`}
+          data={data}
+        />
         <Card title="Activity & progress">
           <Timeline key={`${s.session_id}/${data.as_of}`} data={data} />
         </Card>

@@ -1,4 +1,36 @@
-import { number, type Detail, type Interval } from "./telemetry";
+import {
+  number,
+  type Detail,
+  type EventRecord,
+  type Interval,
+} from "./telemetry";
+
+export function condensedTransitions(changes: EventRecord[]) {
+  const groups: EventRecord[][] = [];
+  const isNoise = (event: EventRecord) =>
+    [
+      "uncertain",
+      "uncertainDetection",
+      "uncertain_detection",
+      "away",
+      "detectedAway",
+      "detected_away",
+    ].includes(String(event.properties.state));
+  for (const change of changes) {
+    const previous = groups.at(-1);
+    if (
+      previous &&
+      isNoise(change) &&
+      isNoise(previous[0]) &&
+      change.run_index === previous[0].run_index
+    ) {
+      previous.push(change);
+    } else {
+      groups.push([change]);
+    }
+  }
+  return groups;
+}
 
 export const stateGroups = [
   {

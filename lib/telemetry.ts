@@ -96,6 +96,7 @@ export type Interval = {
   lane?: string;
 };
 export type Detail = Meta & {
+  piano_checkpoints?: PianoCheckpoint[];
   transitions?: EventRecord[];
   session: Session;
   configuration_changes: EventRecord[];
@@ -116,6 +117,13 @@ export type Detail = Meta & {
   marker_count: number;
   snapshots: Snapshot[];
   selected_snapshot: Snapshot | null;
+};
+export type PianoCheckpoint = {
+  at: number;
+  sequence: number;
+  run_index: number;
+  seconds: number;
+  tracking_status?: string | null;
 };
 export function number(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;

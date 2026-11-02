@@ -89,6 +89,8 @@ If a restricted environment blocks Turbopack worker ports, use
 isolated databases and mocked email delivery. Production accounts, real emails,
 rollout changes, and deployment are never part of the test workflow.
 
+See [Telemetry dashboard](TELEMETRY.md) for session inspection and piano measurement limitations.
+
 ## App privacy policy
 
 `/privacy` is a public, static App Router page linked from the homepage footer.
